@@ -1,0 +1,18 @@
+{% if appInfo != undefined %}
+<h2>冷氣02狀態</h2>
+<p>電壓(V): {{appInfo.AC02voltage}}</p>
+<p>電流(A): {{appInfo.AC02current}}</p>
+<p>功率因素: {{appInfo.AC02pf}}</p>
+<p>功率(kW): {{appInfo.AC02power}}</p>
+<p>累計電度(kWH): {{appInfo.AC02consumption}}</p>
+<p>設備狀態: {{appInfo.AC02alive}}</p>
+<p>----------------------------------</p>
+<p>運轉狀態: {{appInfo.AC02status}}</p>
+<p>運轉模式: {{appInfo.AC02mode}}</p>
+<p>設定溫度: {{appInfo.AC02settemp}}</p>
+<p>設定風速: {{appInfo.AC02windspeed}}</p>
+<p>室內溫度: {{appInfo.AC02roomtemp}}</p>
+<p>設備狀態: {{appInfo.AC02alive}}</p>
+{% endif %}
+
+

@@ -21,10 +21,10 @@ client.on_connect
 def FET_Connect():
     try:
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
+        client.username_pw_set('infilink_ShangriLa2024TPE', 'VbK2rAqE')
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         client.tls_set_context(context)
-        client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
+        client.connect('mqtt-device.fetiot3d1.fetnet.net', 8884 , 60)
         client.loop_start()
         time.sleep(1)
         client.on_connect
@@ -36,10 +36,10 @@ def FET_Publish(Meter_data):
         now = datetime.datetime.now()
         timestamp = int(now.timestamp())
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
+        client.username_pw_set('infilink_ShangriLa2024TPE', 'VbK2rAqE')
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         client.tls_set_context(context)
-        client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
+        client.connect('mqtt-device.fetiot3d1.fetnet.net', 8884 , 60)
         client.loop_start()
         time.sleep(1)
         client.on_connect
@@ -82,8 +82,8 @@ def do_job():
     PowerMeter = MBus.read_3p3w_meter('/dev/ttyS1',11,1)
     FET_Publish(PowerMeter)
 
-schedule.every(5).minutes.do(do_job)
-
+#schedule.every(5).minutes.do(do_job)
+schedule.every(5).seconds.do(do_job)
 
 if __name__ == "__main__":
     while True:

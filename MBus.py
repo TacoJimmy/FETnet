@@ -9,7 +9,7 @@ from modbus_tk import modbus_rtu
 import struct
 
 
-SERIAL_PORT = '/dev/ttyS7'  
+SERIAL_PORT = '/dev/ttyS3'  
 BAUDRATE = 9600             
 PARITY = 'N'                
 STOPBITS = 1                
@@ -89,5 +89,5 @@ def read_3p3w_meter(PORT,ID,loop):
     
 if __name__ == '__main__':
     while True:
-        print(read_3p3w_meter('/dev/ttyS7',11,1))
+        print(read_3p3w_meter('/dev/ttyS3',11,1))
         time.sleep(5)

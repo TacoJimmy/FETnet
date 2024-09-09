@@ -82,8 +82,8 @@ def do_job():
     PowerMeter = MBus.read_3p3w_meter('/dev/ttyS1',11,1)
     FET_Publish(PowerMeter)
 
-schedule.every(5).minutes.do(do_job)
-#schedule.every(5).seconds.do(do_job)
+#schedule.every(5).minutes.do(do_job)
+schedule.every(5).seconds.do(do_job)
 
 if __name__ == "__main__":
     while True:

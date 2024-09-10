@@ -11,7 +11,8 @@ import schedule
 # dev
 client = mqtt.Client('', True, None, mqtt.MQTTv31)
 client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+#context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 client.tls_set_context(context)
 client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
 client.loop_start()
@@ -22,7 +23,8 @@ def FET_Connect():
     try:
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
         client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        #context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         client.tls_set_context(context)
         client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
         client.loop_start()

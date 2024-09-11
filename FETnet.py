@@ -11,7 +11,7 @@ import schedule
 # dev
 client = mqtt.Client('', True, None, mqtt.MQTTv31)
 client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-client.tls_set(ca_certs="ca.crt", certfile="client.crt", keyfile="client.key", cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2)
+client.tls_set(cert_reqs=ssl.CERT_NONE)
 client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
 client.loop_start()
 time.sleep(1)
@@ -21,7 +21,7 @@ def FET_Connect():
     try:
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
         client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        client.tls_set(ca_certs="ca.crt", certfile="client.crt", keyfile="client.key", cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2)
+        client.tls_set(cert_reqs=ssl.CERT_NONE)
         client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
         client.loop_start()
         time.sleep(1)
@@ -35,7 +35,7 @@ def FET_Publish(Meter_data):
         timestamp = int(now.timestamp())
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
         client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        client.tls_set(ca_certs="ca.crt", certfile="client.crt", keyfile="client.key", cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2)
+        client.tls_set(cert_reqs=ssl.CERT_NONE)
         client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
         client.loop_start()
         time.sleep(1)

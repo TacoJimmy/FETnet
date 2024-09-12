@@ -77,8 +77,8 @@ def FET_Publish(Meter_data):
 
 def do_job():
     
-    #PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
-    PowerMeter = 0
+    PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
+    #PowerMeter = 0
     FET_Publish(PowerMeter)
 
 #schedule.every(5).minutes.do(do_job)

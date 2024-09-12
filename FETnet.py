@@ -139,8 +139,8 @@ def do_job():
     FET_Publish_Station(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
     time.sleep(3)
 
-#schedule.every(5).minutes.do(do_job)
-schedule.every(60).seconds.do(do_job)
+schedule.every(5).minutes.do(do_job)
+#schedule.every(60).seconds.do(do_job)
 
 if __name__ == "__main__":
     while True:

@@ -138,6 +138,11 @@ def do_job():
     time.sleep(3)
     FET_Publish_Station(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
     time.sleep(3)
+    PowerMeter = MBus.read_3p3w_meter('/dev/ttyS7',12,1)
+    FET_Publish_Product(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+    time.sleep(3)
+    FET_Publish_Station(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+    time.sleep(3)
 
 schedule.every(5).minutes.do(do_job)
 #schedule.every(60).seconds.do(do_job)

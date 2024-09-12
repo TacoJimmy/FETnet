@@ -30,10 +30,9 @@ def FET_Connect():
         pass
     
 
-def FET_Publish_Product(Meter_data,access_token):
+def FET_Publish_Product(Meter_data,access_token,timestamp):
     try:
-        now = datetime.datetime.now()
-        timestamp = int(now.timestamp())
+        
         client = mqtt.Client('', True, None, mqtt.MQTTv31)
         client.username_pw_set('infilink_ShangriLa2024TPE', '5WufQ879')
         client.tls_set(cert_reqs=ssl.CERT_NONE)
@@ -75,7 +74,7 @@ def FET_Publish_Product(Meter_data,access_token):
     except:
         pass
 
-def FET_Publish_Station(Meter_data,access_token):
+def FET_Publish_Station(Meter_data,access_token,timestamp):
     try:
         now = datetime.datetime.now()
         timestamp = int(now.timestamp())
@@ -122,20 +121,22 @@ def FET_Publish_Station(Meter_data,access_token):
 
 def do_job():
     
+    now = datetime.datetime.now()
+    timestamp = int(now.timestamp())
     PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
-    FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487")
+    FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
     time.sleep(3)
-    FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487")
+    FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
     time.sleep(3)
     PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',31,1)
-    FET_Publish_Product(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10")
+    FET_Publish_Product(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
     time.sleep(3)
-    FET_Publish_Station(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10")
+    FET_Publish_Station(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
     time.sleep(3)
     PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',32,1)
-    FET_Publish_Product(PowerMeter,"99b270cf07544505a91fe924062af584")
+    FET_Publish_Product(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
     time.sleep(3)
-    FET_Publish_Station(PowerMeter,"99b270cf07544505a91fe924062af584")
+    FET_Publish_Station(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
     time.sleep(3)
 
 #schedule.every(5).minutes.do(do_job)

@@ -9,11 +9,6 @@ from modbus_tk import modbus_rtu
 import struct
 
 
-SERIAL_PORT = '/dev/ttyS3'  
-BAUDRATE = 9600             
-PARITY = 'N'                
-STOPBITS = 1                
-BYTESIZE = 8
 
 def float_num(int16_1, int16_2):
     combined = (int16_2 << 16) | int16_1
@@ -89,7 +84,7 @@ def read_PowerMeter(PORT,ID,loop):
     loop = loop - 1
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     
-    master = modbus_rtu.RtuMaster(serial.Serial(port=SERIAL_PORT, baudrate=BAUDRATE, bytesize=BYTESIZE, parity=PARITY, stopbits=STOPBITS, xonxoff=0))
+    master = modbus_rtu.RtuMaster(serial.Serial(port=PORT, baudrate=BAUDRATE, bytesize=BYTESIZE, parity=PARITY, stopbits=STOPBITS, xonxoff=0))
     master.set_timeout(5.0)
     master.set_verbose(True)
     pw_frq = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28672, 2)

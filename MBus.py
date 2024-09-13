@@ -84,7 +84,7 @@ def read_PowerMeter(PORT,ID,loop):
     loop = loop - 1
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     
-    master = modbus_rtu.RtuMaster(serial.Serial(port=PORT, baudrate=BAUDRATE, bytesize=BYTESIZE, parity=PARITY, stopbits=STOPBITS, xonxoff=0))
+    master = modbus_rtu.RtuMaster(serial.Serial(port=PORT, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=0))
     master.set_timeout(5.0)
     master.set_verbose(True)
     pw_frq = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28672, 2)

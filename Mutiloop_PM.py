@@ -176,37 +176,46 @@ def Read_MutiPowerMeter(ID,cound):
         PowerFreq_Value = round(PowerFreq_Data[0]*0.01,2)
         kw_Reg_addr = 5128 + 768 * cound
         PowerkW_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kw_Reg_addr, 8)
-        PowerkW_I1 = conv(PowerkW_Data[1], PowerkW_Data[0])
-        PowerkW_I2 = conv(PowerkW_Data[3], PowerkW_Data[2])
-        PowerkW_I3 = conv(PowerkW_Data[5], PowerkW_Data[4])
         PowerkW_Iavg = conv(PowerkW_Data[7], PowerkW_Data[6])
         kvar_Reg_addr = 5136 + 768 * cound
         PowerkVAR_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 8)
-        PowerkVAR_I1 = conv(PowerkVAR_Data[1], PowerkVAR_Data[0])
-        PowerkVAR_I2 = conv(PowerkVAR_Data[3], PowerkVAR_Data[2])
-        PowerkVAR_I3 = conv(PowerkVAR_Data[5], PowerkVAR_Data[4])
         PowerkVAR_Iavg = conv(PowerkVAR_Data[7], PowerkVAR_Data[6])
+        kvar_Reg_addr = 5155 + 768 * cound
+        PowerFactor_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 2)
+        PowerFactor = conv(PowerFactor_Data[1], PowerFactor_Data[0])
+        kwh_Reg_addr = 5194 + 768 * cound
+        Energykwh_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kwh_Reg_addr, 2)
+        Energykwh = conv(Energykwh_Data[1], Energykwh_Data[0])
+        kvah_Reg_addr = 5202 + 768 * cound
+        Energykvah_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvah_Reg_addr, 2)
+        Energykvah = conv(Energykvah_Data[1], Energykvah_Data[0])
+        DM_Reg_addr = 5168 + 768 * cound
+        demand_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, DM_Reg_addr, 2)
+        demand = conv(demand_Data[1], demand_Data[0])
+        kvas_Reg_addr = 5144 + 768 * cound
+        PowerkVAS_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, kvas_Reg_addr, 8)
+        PowerkVAS_Iavg = conv(PowerkVAS_Data[7], PowerkVAS_Data[6])
         
 
 
         
         
-        MainPW_meter[0] =  round(PowerVoltage_V1,2)
-        MainPW_meter[1] =  round(PowerVoltage_V2,2)
-        MainPW_meter[2] =  round(PowerVoltage_V3,2)
-        MainPW_meter[3] =  round(PowerVoltage_Vavg,2)
-        MainPW_meter[4] =  round(PowerCurrnet_I1,2)
-        MainPW_meter[5] =  round(PowerCurrnet_I2,2)
-        MainPW_meter[6] =  round(PowerCurrnet_I3,2)
-        MainPW_meter[7] =  round(PowerCurrnet_Iavg,2)
-        MainPW_meter[8] =  round(PowerFreq_Value,2)
+        MainPW_meter[0] =  round(PowerFreq_Value,2)
+        MainPW_meter[1] =  round(PowerVoltage_V1,2)
+        MainPW_meter[2] =  round(PowerVoltage_V2,2)
+        MainPW_meter[3] =  round(PowerVoltage_V3,2)
+        MainPW_meter[4] =  round(PowerVoltage_Vavg,2)
+        MainPW_meter[5] =  round(PowerCurrnet_I1,2)
+        MainPW_meter[6] =  round(PowerCurrnet_I2,2)
+        MainPW_meter[7] =  round(PowerCurrnet_I3,2)
+        MainPW_meter[8] =  round(PowerCurrnet_Iavg,2)
         MainPW_meter[9] =  round(PowerkW_Iavg,2)
         MainPW_meter[10] =  round(PowerkVAR_Iavg,2)
-        MainPW_meter[11] =  round(float_num(pw_power_va[1], pw_power_va[0])*0.001,2)
-        MainPW_meter[12] =  round(float_num(pw_pf[1], pw_pf[0]),2)
-        MainPW_meter[13] =  round(float_num(pw_dm_w[1], pw_dm_w[0]),2)
-        MainPW_meter[14] =  round(float_num(pw_consum_kwh[1], pw_consum_kwh[0]),2)
-        MainPW_meter[15] =  round(float_num(pw_consum_kvarh[1], pw_consum_kvarh[0]),2)
+        MainPW_meter[11] =  round(PowerkVAS_Iavg,2)
+        MainPW_meter[12] =  round(PowerFactor,2)
+        MainPW_meter[13] =  round(demand,2)
+        MainPW_meter[14] =  round(Energykwh,2)
+        MainPW_meter[15] =  round(Energykvah,2)
         MainPW_meter[16] =  1
         
         return (MainPW_meter)
@@ -234,12 +243,5 @@ def Read_MutiPowerMeter(ID,cound):
         return (MainPW_meter) 
 
 if __name__ == '__main__':
-    
-    print(Read_MainPowerVoltage())
-    print(Read_SubPowerCurrnet(1))
-    print(Read_PowerFreq())
-    print(Read_SubPowerkW(1))
-    print(Read_SubPowerkVAR(1))
-    print(Read_SubPowerkVAR(1))
-
+    print(Read_MutiPowerMeter(17,1))
     

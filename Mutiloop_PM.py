@@ -64,10 +64,10 @@ def kWConv(num1, num2):
     
     return packed_num
 
-def Read_MutiPowerMeter(ID,cound):
+def Read_MutiPowerMeter(port,ID,cound):
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     try:
-        master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS7', baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=0))
+        master = modbus_rtu.RtuMaster(serial.Serial(port=port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=0))
         master.set_timeout(5.0)
         master.set_verbose(True)
         
@@ -154,8 +154,8 @@ def Read_MutiPowerMeter(ID,cound):
         return (MainPW_meter) 
 
 if __name__ == '__main__':
-    print(Read_MutiPowerMeter(17,0))
-    print(Read_MutiPowerMeter(17,1))
-    print(Read_MutiPowerMeter(17,2))
-    print(Read_MutiPowerMeter(17,3))
+    print(Read_MutiPowerMeter(15,0))
+    print(Read_MutiPowerMeter(15,1))
+    print(Read_MutiPowerMeter(15,2))
+    print(Read_MutiPowerMeter(15,3))
     

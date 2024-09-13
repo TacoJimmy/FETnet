@@ -88,10 +88,10 @@ def Read_MutiPowerMeter(ID,cound):
         PowerFactor = round(convert_value(PowerFactor_Data[0]),2)
         kwh_Reg_addr = 5194 + 768 * cound
         Energykwh_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kwh_Reg_addr, 2)
-        Energykwh = conv(Energykwh_Data[1], Energykwh_Data[0])
+        Energykwh = (conv(Energykwh_Data[1], Energykwh_Data[0])*0.1)
         kvah_Reg_addr = 5202 + 768 * cound
         Energykvah_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvah_Reg_addr, 2)
-        Energykvah = conv(Energykvah_Data[1], Energykvah_Data[0])
+        Energykvah = (conv(Energykvah_Data[1], Energykvah_Data[0])*0.1)
         DM_Reg_addr = 5168 + 768 * cound
         demand_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, DM_Reg_addr, 2)
         demand = conv(demand_Data[1], demand_Data[0])

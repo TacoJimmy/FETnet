@@ -149,9 +149,7 @@ def Read_SubPowerkVAS(Cound):
     return PowerkVAS_I1, PowerkVAS_I2, PowerkVAS_I3, PowerkVAS_Iavg
 
 def Read_MutiPowerMeter(ID,cound):
-    loop = loop - 1
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    
     try:
         master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS7', baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=0))
         master.set_timeout(5.0)

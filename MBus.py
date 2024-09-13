@@ -124,3 +124,5 @@ if __name__ == '__main__':
     while True:
         print(read_PowerMeter('/dev/ttyS7',12,1))
         time.sleep(5)
+        print(read_PowerMeter('/dev/ttyS3',30,1))
+        time.sleep(5)

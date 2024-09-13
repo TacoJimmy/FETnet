@@ -57,97 +57,6 @@ def kWConv(num1, num2):
     
     return packed_num
 
-def Read_PowerFreq():
-   
-    PowerFreq_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, 4096, 1)
-    PowerFreq_Value = round(PowerFreq_Data[0]*0.01,2)
-    return PowerFreq_Value
-
-def Read_MainPowerVoltage():
-    PowerVoltage_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, 4105, 8)
-    #time.sleep(1)
-    PowerVoltage_V1 = VoltageConv(PowerVoltage_Data[0], PowerVoltage_Data[1])
-    PowerVoltage_V2 = VoltageConv(PowerVoltage_Data[2], PowerVoltage_Data[3])
-    PowerVoltage_V3 = VoltageConv(PowerVoltage_Data[4], PowerVoltage_Data[5])
-    PowerVoltage_Vavg = VoltageConv(PowerVoltage_Data[6], PowerVoltage_Data[7])
-    return PowerVoltage_V1,PowerVoltage_V2,PowerVoltage_V3,PowerVoltage_Vavg
-
-def Read_MainPowerCurrnet():
-    PowerCurrnet_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, 4113, 8)
-    #time.sleep(1)
-    PowerCurrnet_I1 = CurrntConv(PowerCurrnet_Data[0], PowerCurrnet_Data[1])
-    PowerCurrnet_I2 = CurrntConv(PowerCurrnet_Data[2], PowerCurrnet_Data[3])
-    PowerCurrnet_I3 = CurrntConv(PowerCurrnet_Data[4], PowerCurrnet_Data[5])
-    PowerCurrnet_Iavg = CurrntConv(PowerCurrnet_Data[6], PowerCurrnet_Data[7])
-    return PowerCurrnet_I1,PowerCurrnet_I2,PowerCurrnet_I3,PowerCurrnet_Iavg
-
-def Read_MainPowerkW():
-    PowerkW_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, 4123, 8)
-    #time.sleep(1)
-    PowerkW_I1 = conv(PowerkW_Data[1], PowerkW_Data[0])
-    PowerkW_I2 = conv(PowerkW_Data[3], PowerkW_Data[2])
-    PowerkW_I3 = conv(PowerkW_Data[5], PowerkW_Data[4])
-    PowerkW_Iavg = conv(PowerkW_Data[7], PowerkW_Data[6])
-    return PowerkW_I1, PowerkW_I2, PowerkW_I3, PowerkW_Iavg
-
-def Read_MainPowerkVAR():
-    PowerkVAR_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, 4131, 8)
-    #time.sleep(1)
-    PowerkVAR_I1 = conv(PowerkVAR_Data[1], PowerkVAR_Data[0])
-    PowerkVAR_I2 = conv(PowerkVAR_Data[3], PowerkVAR_Data[2])
-    PowerkVAR_I3 = conv(PowerkVAR_Data[5], PowerkVAR_Data[4])
-    PowerkVAR_Iavg = conv(PowerkVAR_Data[7], PowerkVAR_Data[6])
-    return PowerkVAR_I1, PowerkVAR_I2, PowerkVAR_I3, PowerkVAR_Iavg
-
-def Read_MainPowerkVAS():
-    PowerkVAS_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, 4139, 8)
-    #time.sleep(1)
-    PowerkVAS_I1 = conv(PowerkVAS_Data[1], PowerkVAS_Data[0])
-    PowerkVAS_I2 = conv(PowerkVAS_Data[3], PowerkVAS_Data[2])
-    PowerkVAS_I3 = conv(PowerkVAS_Data[5], PowerkVAS_Data[4])
-    PowerkVAS_Iavg = conv(PowerkVAS_Data[7], PowerkVAS_Data[6])
-    return PowerkVAS_I1, PowerkVAS_I2, PowerkVAS_I3, PowerkVAS_Iavg
-
-def Read_SubPowerCurrnet(Cound):
-    Reg_addr = 5120+768*Cound
-    PowerCurrnet_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, Reg_addr, 8)
-    #time.sleep(1)
-    PowerCurrnet_I1 = CurrntConv(PowerCurrnet_Data[0], PowerCurrnet_Data[1])
-    PowerCurrnet_I2 = CurrntConv(PowerCurrnet_Data[2], PowerCurrnet_Data[3])
-    PowerCurrnet_I3 = CurrntConv(PowerCurrnet_Data[4], PowerCurrnet_Data[5])
-    PowerCurrnet_Iavg = CurrntConv(PowerCurrnet_Data[6], PowerCurrnet_Data[7])
-    return PowerCurrnet_I1,PowerCurrnet_I2,PowerCurrnet_I3,PowerCurrnet_Iavg
-
-def Read_SubPowerkW(Cound):
-    Reg_addr = 5128 + 768 * Cound
-    PowerkW_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, Reg_addr, 8)
-    #time.sleep(1)
-    PowerkW_I1 = conv(PowerkW_Data[1], PowerkW_Data[0])
-    PowerkW_I2 = conv(PowerkW_Data[3], PowerkW_Data[2])
-    PowerkW_I3 = conv(PowerkW_Data[5], PowerkW_Data[4])
-    PowerkW_Iavg = conv(PowerkW_Data[7], PowerkW_Data[6])
-    return PowerkW_I1, PowerkW_I2, PowerkW_I3, PowerkW_Iavg
-
-def Read_SubPowerkVAR(Cound):
-    Reg_addr = 5136 + 768 * Cound
-    PowerkVAR_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, Reg_addr, 8)
-    #time.sleep(1)
-    PowerkVAR_I1 = conv(PowerkVAR_Data[1], PowerkVAR_Data[0])
-    PowerkVAR_I2 = conv(PowerkVAR_Data[3], PowerkVAR_Data[2])
-    PowerkVAR_I3 = conv(PowerkVAR_Data[5], PowerkVAR_Data[4])
-    PowerkVAR_Iavg = conv(PowerkVAR_Data[7], PowerkVAR_Data[6])
-    return PowerkVAR_I1, PowerkVAR_I2, PowerkVAR_I3, PowerkVAR_Iavg
-
-def Read_SubPowerkVAS(Cound):
-    Reg_addr = 5144 + 768 * Cound
-    PowerkVAS_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, Reg_addr, 8)
-    time.sleep(1)
-    PowerkVAS_I1 = conv(PowerkVAS_Data[1], PowerkVAS_Data[0])
-    PowerkVAS_I2 = conv(PowerkVAS_Data[3], PowerkVAS_Data[2])
-    PowerkVAS_I3 = conv(PowerkVAS_Data[5], PowerkVAS_Data[4])
-    PowerkVAS_Iavg = conv(PowerkVAS_Data[7], PowerkVAS_Data[6])
-    return PowerkVAS_I1, PowerkVAS_I2, PowerkVAS_I3, PowerkVAS_Iavg
-
 def Read_MutiPowerMeter(ID,cound):
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     try:
@@ -174,9 +83,9 @@ def Read_MutiPowerMeter(ID,cound):
         kvar_Reg_addr = 5136 + 768 * cound
         PowerkVAR_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 8)
         PowerkVAR_Iavg = conv(PowerkVAR_Data[7], PowerkVAR_Data[6])
-        kvar_Reg_addr = 5155 + 768 * cound
-        PowerFactor_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 2)
-        PowerFactor = conv(PowerFactor_Data[1], PowerFactor_Data[0])
+        PF_Reg_addr = 5155 + 768 * cound
+        PowerFactor_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, PF_Reg_addr, 1)
+        PowerFactor = round(convert_value(PowerFactor_Data[0]),2)
         kwh_Reg_addr = 5194 + 768 * cound
         Energykwh_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kwh_Reg_addr, 2)
         Energykwh = conv(Energykwh_Data[1], Energykwh_Data[0])
@@ -211,8 +120,9 @@ def Read_MutiPowerMeter(ID,cound):
         MainPW_meter[14] =  round(Energykwh,2)
         MainPW_meter[15] =  round(Energykvah,2)
         MainPW_meter[16] =  1
-        
+       
         return (MainPW_meter)
+
 
     except:
         MainPW_meter[0] = 0

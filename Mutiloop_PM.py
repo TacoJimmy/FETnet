@@ -166,28 +166,28 @@ def Read_MutiPowerMeter(ID,cound):
         PowerCurrnet_I2 = CurrntConv(PowerCurrnet_Data[2], PowerCurrnet_Data[3])
         PowerCurrnet_I3 = CurrntConv(PowerCurrnet_Data[4], PowerCurrnet_Data[5])
         PowerCurrnet_Iavg = CurrntConv(PowerCurrnet_Data[6], PowerCurrnet_Data[7])
-        PowerFreq_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, 4096, 1)
+        PowerFreq_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, 4096, 1)
         PowerFreq_Value = round(PowerFreq_Data[0]*0.01,2)
         kw_Reg_addr = 5128 + 768 * cound
-        PowerkW_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kw_Reg_addr, 8)
+        PowerkW_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kw_Reg_addr, 8)
         PowerkW_Iavg = conv(PowerkW_Data[7], PowerkW_Data[6])
         kvar_Reg_addr = 5136 + 768 * cound
-        PowerkVAR_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 8)
+        PowerkVAR_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 8)
         PowerkVAR_Iavg = conv(PowerkVAR_Data[7], PowerkVAR_Data[6])
         kvar_Reg_addr = 5155 + 768 * cound
-        PowerFactor_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 2)
+        PowerFactor_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvar_Reg_addr, 2)
         PowerFactor = conv(PowerFactor_Data[1], PowerFactor_Data[0])
         kwh_Reg_addr = 5194 + 768 * cound
-        Energykwh_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kwh_Reg_addr, 2)
+        Energykwh_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kwh_Reg_addr, 2)
         Energykwh = conv(Energykwh_Data[1], Energykwh_Data[0])
         kvah_Reg_addr = 5202 + 768 * cound
-        Energykvah_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, kvah_Reg_addr, 2)
+        Energykvah_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvah_Reg_addr, 2)
         Energykvah = conv(Energykvah_Data[1], Energykvah_Data[0])
         DM_Reg_addr = 5168 + 768 * cound
-        demand_Data = master.execute(17, cst.READ_HOLDING_REGISTERS, DM_Reg_addr, 2)
+        demand_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, DM_Reg_addr, 2)
         demand = conv(demand_Data[1], demand_Data[0])
         kvas_Reg_addr = 5144 + 768 * cound
-        PowerkVAS_Data = master.execute(1, cst.READ_HOLDING_REGISTERS, kvas_Reg_addr, 8)
+        PowerkVAS_Data = master.execute(ID, cst.READ_HOLDING_REGISTERS, kvas_Reg_addr, 8)
         PowerkVAS_Iavg = conv(PowerkVAS_Data[7], PowerkVAS_Data[6])
         
 

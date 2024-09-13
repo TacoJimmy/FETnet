@@ -6,6 +6,7 @@ import paho.mqtt.client as mqtt
 import time
 import datetime
 import MBus
+import Mutiloop_PM
 import schedule
 import flowMeter
 
@@ -220,6 +221,25 @@ def do_job():
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS7',12,1)
         FET_Publish_Product(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
         FET_Publish_Station(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+
+        #PUMP01
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,0)
+        FET_Publish_Product(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
+        #pump02
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,1)
+        FET_Publish_Product(MutiPowerMeter,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
+        #pump03
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,2)
+        FET_Publish_Product(MutiPowerMeter,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
+        #pump04
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,3)
+        FET_Publish_Product(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
+
+
 
         PowerMeter = flowMeter.flow_meter('/dev/ttyS7',22,1)
         FlowMeter_Publish_Station(PowerMeter,"9382460cc8534e368589b0956a859f9f",timestamp)

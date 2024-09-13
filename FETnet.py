@@ -187,7 +187,7 @@ def do_job():
             pass
 
 
-schedule.every(5).minutes.do(do_job)
+schedule.every(1).minutes.do(do_job)
 #schedule.every(60).seconds.do(do_job)
 
 if __name__ == "__main__":

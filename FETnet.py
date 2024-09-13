@@ -69,7 +69,7 @@ def FET_Publish_Product(Meter_data,access_token,timestamp):
                       }}]}
             ]
     
-        data03 = client.publish('/ShangriLa2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
         print (data03)
         print (mod_payload)
@@ -114,7 +114,7 @@ def FET_Publish_Station(Meter_data,access_token,timestamp):
                       }}]}
             ]
     
-        data03 = client.publish('/ShangriLa2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
         print (data03)
         print (mod_payload)
@@ -153,7 +153,7 @@ def FlowMeter_Publish_Station(Meter_data,access_token,timestamp):
                       }}]}
             ]
     
-        data03 = client.publish('/ShangriLa2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
         print (data03)
         print (mod_payload)
@@ -192,7 +192,7 @@ def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
                       }}]}
             ]
     
-        data03 = client.publish('/ShangriLa2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
         print (data03)
         print (mod_payload)

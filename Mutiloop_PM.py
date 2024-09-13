@@ -8,14 +8,14 @@ from modbus_tk import modbus_rtu
 import struct
 
 
-master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS7', baudrate=9600, bytesize=8, parity="N", stopbits=1, xonxoff=0))
+master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS3', baudrate=9600, bytesize=8, parity="N", stopbits=1, xonxoff=0))
 master.set_timeout(5.0)
 master.set_verbose(True)
 
 def create_modbus_connection():
     global master
     try:
-        master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS7', baudrate=9600, bytesize=8, parity="N", stopbits=1, xonxoff=0))
+        master = modbus_rtu.RtuMaster(serial.Serial(port='/dev/ttyS3', baudrate=9600, bytesize=8, parity="N", stopbits=1, xonxoff=0))
         master.set_timeout(5.0)
         master.set_verbose(True)
     except:
@@ -154,8 +154,8 @@ def Read_MutiPowerMeter(port,ID,cound):
         return (MainPW_meter) 
 
 if __name__ == '__main__':
-    print(Read_MutiPowerMeter(15,0))
-    print(Read_MutiPowerMeter(15,1))
-    print(Read_MutiPowerMeter(15,2))
-    print(Read_MutiPowerMeter(15,3))
+    print(Read_MutiPowerMeter('/dev/ttyS3',15,0))
+    print(Read_MutiPowerMeter('/dev/ttyS3',15,1))
+    print(Read_MutiPowerMeter('/dev/ttyS3',15,2))
+    print(Read_MutiPowerMeter('/dev/ttyS3',15,3))
     

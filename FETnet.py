@@ -148,7 +148,7 @@ def FlowMeter_Publish_Station(Meter_data,access_token,timestamp):
                       "flowmeter_total_energy_rth":Meter_data[6],
                       "flowmeter_temperature_inlet":Meter_data[7],
                       "flowmeter_temperature_outlet":Meter_data[8],
-                      "alive":Meter_data[9]
+                      "alive":1
                       }}]}
             ]
     

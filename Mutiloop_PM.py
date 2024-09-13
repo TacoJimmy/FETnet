@@ -1,14 +1,10 @@
 import codecs
 # -*- coding: UTF-8 -*-
 
-import paho.mqtt.client as mqtt
-import json
 import time
-import schedule  
 import serial
 import modbus_tk.defines as cst
 from modbus_tk import modbus_rtu
-import threading
 import struct
 
 

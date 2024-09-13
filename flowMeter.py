@@ -8,13 +8,6 @@ import modbus_tk.defines as cst
 from modbus_tk import modbus_rtu
 import struct
 
-
-SERIAL_PORT = '/dev/ttyS7'   
-BAUDRATE = 9600             
-PARITY = 'N'                
-STOPBITS = 1                
-BYTESIZE = 8
-
 def float_num(int16_1, int16_2):
     combined = (int16_2 << 16) | int16_1
     byte_data = struct.pack('<I', combined)
@@ -61,8 +54,7 @@ def flow_meter(PORT,ID,loop):
         
         
         
-        return ()
-        #return (RT_Flowdata,RT_Energydata,RT_FlowSpeeddata,Temp11,Temp21)
+        return (RT_Flowdata,RT_EnergyGJ,RT_EnergyRTh,RT_FlowSpeeddata,Cal_volume,Cal_EnergyGJ,Cal_EnergyRTH,RT_FlowTemp1,RT_FlowTemp2)
 
     except:
         pass

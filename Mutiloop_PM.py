@@ -154,8 +154,8 @@ def Read_MutiPowerMeter(port,ID,cound):
         return (MainPW_meter) 
 
 if __name__ == '__main__':
-    print(Read_MutiPowerMeter('/dev/ttyS3',15,0))
-    print(Read_MutiPowerMeter('/dev/ttyS3',15,1))
-    print(Read_MutiPowerMeter('/dev/ttyS3',15,2))
-    print(Read_MutiPowerMeter('/dev/ttyS3',15,3))
+    print(Read_MutiPowerMeter('/dev/ttyS7',15,0))
+    print(Read_MutiPowerMeter('/dev/ttyS7',15,1))
+    print(Read_MutiPowerMeter('/dev/ttyS7',15,2))
+    print(Read_MutiPowerMeter('/dev/ttyS7',15,3))
     

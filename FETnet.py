@@ -259,6 +259,25 @@ def do_job():
         MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,3)
         FET_Publish_Product(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
         FET_Publish_Station(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
+        
+        #---------------------------------------------15---------------------------------
+
+        #PUMP01  
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,0)
+        FET_Publish_Product(MutiPowerMeter,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
+        #pump02
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,1)
+        FET_Publish_Product(MutiPowerMeter,"90682c1eec754930bb95cbce47955f99",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"90682c1eec754930bb95cbce47955f99",timestamp)
+        #pump03
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,2)
+        FET_Publish_Product(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
+        #pump04
+        #MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,3)
+        #FET_Publish_Product(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
+        #FET_Publish_Station(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
 
 
 

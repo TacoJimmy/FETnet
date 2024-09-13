@@ -51,10 +51,10 @@ def flow_meter(PORT,ID,loop):
         Temp11 = round(float_num(Temp1[0], Temp1[1]),2)
         Temp2 = master.execute(ID, cst.READ_HOLDING_REGISTERS, 34, 2)
         Temp21 = round(float_num(Temp2[0], Temp2[1]),2)
+        flowerMeterStatus = 1
         
         
-        
-        return (RT_Flowdata,RT_EnergyGJ,RT_EnergyRTh,RT_FlowSpeeddata,Cal_volume,Cal_EnergyGJ,Cal_EnergyRTH,RT_FlowTemp1,RT_FlowTemp2)
+        return (RT_Flowdata,RT_EnergyGJ,RT_EnergyRTh,RT_FlowSpeeddata,Cal_volume,Cal_EnergyGJ,Cal_EnergyRTH,RT_FlowTemp1,RT_FlowTemp2,flowerMeterStatus)
 
     except:
         pass

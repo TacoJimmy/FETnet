@@ -72,8 +72,8 @@ def FET_Publish_Product(Meter_data,access_token,timestamp):
     
         data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
-        print (data03)
-        print (mod_payload)
+        #print (data03)
+        #print (mod_payload)
     except:
         pass
 
@@ -117,8 +117,8 @@ def FET_Publish_Station(Meter_data,access_token,timestamp):
     
         data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
-        print (data03)
-        print (mod_payload)
+        #print (data03)
+        #print (mod_payload)
     except:
         pass
 
@@ -156,8 +156,8 @@ def FlowMeter_Publish_Station(Meter_data,access_token,timestamp):
     
         data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
-        print (data03)
-        print (mod_payload)
+        #print (data03)
+        #print (mod_payload)
     except:
         pass
 
@@ -195,8 +195,8 @@ def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
     
         data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
-        print (data03)
-        print (mod_payload)
+        #print (data03)
+        #print (mod_payload)
     except:
         pass
 
@@ -288,7 +288,7 @@ def do_job():
         pass
 
 
-schedule.every(1).minutes.do(do_job)
+schedule.every(5).minutes.do(do_job)
 #schedule.every(60).seconds.do(do_job)
 
 if __name__ == "__main__":

@@ -289,7 +289,7 @@ def do_job():
 
 
 schedule.every(5).minutes.do(do_job)
-#schedule.every(60).seconds.do(do_job)
+#schedule.every(10).seconds.do(do_job)
 
 if __name__ == "__main__":
     while True:

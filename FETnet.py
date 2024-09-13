@@ -221,8 +221,10 @@ def do_job():
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS7',12,1)
         FET_Publish_Product(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
         FET_Publish_Station(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+        
+        #----------------------------------------------17--------------------------------
 
-        #PUMP01
+        #PUMP01  
         MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,0)
         FET_Publish_Product(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
         FET_Publish_Station(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
@@ -238,6 +240,25 @@ def do_job():
         MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,3)
         FET_Publish_Product(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
         FET_Publish_Station(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
+
+        #---------------------------------------------18---------------------------------
+
+        #PUMP01  
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,0)
+        FET_Publish_Product(MutiPowerMeter,"677b94773d93483aa89aa6e869551499",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"677b94773d93483aa89aa6e869551499",timestamp)
+        #pump02
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,1)
+        FET_Publish_Product(MutiPowerMeter,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
+        #pump03
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,2)
+        FET_Publish_Product(MutiPowerMeter,"30eb8f3a70ab4a259575720ca215d190",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"30eb8f3a70ab4a259575720ca215d190",timestamp)
+        #pump04
+        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,3)
+        FET_Publish_Product(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
+        FET_Publish_Station(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
 
 
 

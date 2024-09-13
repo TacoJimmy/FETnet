@@ -20,8 +20,15 @@ def create_modbus_connection():
         master.set_verbose(True)
     except:
         pass
-#if datat -999999~999999
-# num1 is hi bit, num2 is lo bit
+
+def convert_value(val):
+    if 0 <= val <= 32767:
+        return val * 0.001
+    elif 32768 <= val <= 65535:
+        return ((65535-val) * (-0.001))
+    else:
+        return 1
+
 def conv(num1,num2):
     #check negative
     num1_negative = (num1>>15) & 0x1
@@ -147,5 +154,8 @@ def Read_MutiPowerMeter(ID,cound):
         return (MainPW_meter) 
 
 if __name__ == '__main__':
+    print(Read_MutiPowerMeter(17,0))
     print(Read_MutiPowerMeter(17,1))
+    print(Read_MutiPowerMeter(17,2))
+    print(Read_MutiPowerMeter(17,3))
     

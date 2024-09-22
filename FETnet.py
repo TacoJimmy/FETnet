@@ -222,7 +222,9 @@ def do_job():
         print("4")
         print("a")
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
+        print("a1")
         FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
+        print("a2")
         FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
         print("b")
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',31,1)
@@ -297,6 +299,8 @@ def do_job():
     except:
         pass
 
+MQTT_Connect_pro()
+MQTT_Connect_sta()
 
 #schedule.every(5).minutes.do(do_job)
 schedule.every(10).seconds.do(do_job)

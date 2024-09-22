@@ -9,6 +9,7 @@ import MBus
 import Mutiloop_PM
 import schedule
 import flowMeter
+from datetime import datetime
 
 def on_connect(client, userdata, flags, rc):
     global is_connected
@@ -211,7 +212,8 @@ def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
 def do_job():
     
     try:
-        now = datetime.datetime.now()
+        now = datetime.now()
+    
         aligned_minute = now.minute - (now.minute % 5)
         aligned_time = now.replace(minute=aligned_minute, second=0, microsecond=0)
         timestamp = int(time.mktime(aligned_time.timetuple()))

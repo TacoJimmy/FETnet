@@ -200,7 +200,7 @@ def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
                 ]   
     
             data03 = client_pro.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-            time.sleep(10)
+            time.sleep(5)
             print ("Production= " + data03)
             print ("Production= " + mod_payload)
         else:
@@ -213,88 +213,63 @@ def do_job():
     
     try:
         now = datetime.now()
-        print("1")
         aligned_minute = now.minute - (now.minute % 5)
-        print("2")
         aligned_time = now.replace(minute=aligned_minute, second=0, microsecond=0)
-        print("3")
         timestamp = int(time.mktime(aligned_time.timetuple()))
-        print("4")
-        print("a")
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
-        print("a1")
         FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
-        print("a2")
         FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
-        print("b")
-        PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',31,1)
-        FET_Publish_Product(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
-        FET_Publish_Station(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
-    
-        PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',32,1)
-        FET_Publish_Product(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
-        FET_Publish_Station(PowerMeter,"99b270cf07544505a91fe924062af584",timestamp)
-    
-        PowerMeter = MBus.read_3p3w_meter('/dev/ttyS7',12,1)
-        FET_Publish_Product(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
-        FET_Publish_Station(PowerMeter,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+        PowerMeter1 = MBus.read_3p3w_meter('/dev/ttyS3',31,1)
+        PowerMeter2 = MBus.read_3p3w_meter('/dev/ttyS3',32,1)
+        PowerMeter3 = MBus.read_3p3w_meter('/dev/ttyS7',12,1)
+        MutiPowerMeter4 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,0)
+        MutiPowerMeter5 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,1)
+        MutiPowerMeter6 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,2)
+        MutiPowerMeter7 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,3)
+        MutiPowerMeter8 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,0)
+        MutiPowerMeter9 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,1)
+        MutiPowerMeter10 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,2)
+        MutiPowerMeter11 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,3)
+        MutiPowerMeter12 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,0)
+        MutiPowerMeter13 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,1)
+        MutiPowerMeter14 = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,2)
+        PowerMeter15 = flowMeter.flow_meter('/dev/ttyS7',22,1)
+
+
+
+        FET_Publish_Product(PowerMeter1,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
+        FET_Publish_Product(PowerMeter2,"99b270cf07544505a91fe924062af584",timestamp)
+        FET_Publish_Product(PowerMeter3,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+        FET_Publish_Product(MutiPowerMeter4,"e7c1671b6d59421996e74eade7e4f704",timestamp)
+        FET_Publish_Product(MutiPowerMeter5,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
+        FET_Publish_Product(MutiPowerMeter6,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
+        FET_Publish_Product(MutiPowerMeter7,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
+        FET_Publish_Product(MutiPowerMeter8,"677b94773d93483aa89aa6e869551499",timestamp)
+        FET_Publish_Product(MutiPowerMeter9,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
+        FET_Publish_Product(MutiPowerMeter10,"30eb8f3a70ab4a259575720ca215d190",timestamp)
+        FET_Publish_Product(MutiPowerMeter11,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
+        FET_Publish_Product(MutiPowerMeter12,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
+        FET_Publish_Product(MutiPowerMeter13,"90682c1eec754930bb95cbce47955f99",timestamp)
+        FET_Publish_Product(MutiPowerMeter14,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
+        FlowMeter_Publish_Station(PowerMeter15,"9382460cc8534e368589b0956a859f9f",timestamp)
         
-        #----------------------------------------------17--------------------------------
 
-        #PUMP01  
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,0)
-        FET_Publish_Product(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"e7c1671b6d59421996e74eade7e4f704",timestamp)
-        #pump02
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,1)
-        FET_Publish_Product(MutiPowerMeter,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
-        #pump03
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,2)
-        FET_Publish_Product(MutiPowerMeter,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
-        #pump04
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',17,3)
-        FET_Publish_Product(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
 
-        #---------------------------------------------18---------------------------------
-
-        #PUMP01  
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,0)
-        FET_Publish_Product(MutiPowerMeter,"677b94773d93483aa89aa6e869551499",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"677b94773d93483aa89aa6e869551499",timestamp)
-        #pump02
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,1)
-        FET_Publish_Product(MutiPowerMeter,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
-        #pump03
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,2)
-        FET_Publish_Product(MutiPowerMeter,"30eb8f3a70ab4a259575720ca215d190",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"30eb8f3a70ab4a259575720ca215d190",timestamp)
-        #pump04
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',18,3)
-        FET_Publish_Product(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
-        
-        #---------------------------------------------15---------------------------------
-
-        #PUMP01  
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,0)
-        FET_Publish_Product(MutiPowerMeter,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
-        #pump02
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,1)
-        FET_Publish_Product(MutiPowerMeter,"90682c1eec754930bb95cbce47955f99",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"90682c1eec754930bb95cbce47955f99",timestamp)
-        #pump03
-        MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,2)
-        FET_Publish_Product(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
-        FET_Publish_Station(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
-        
-        PowerMeter = flowMeter.flow_meter('/dev/ttyS7',22,1)
-        FlowMeter_Publish_Station(PowerMeter,"9382460cc8534e368589b0956a859f9f",timestamp)
-        FlowMeter_Publish_Production(PowerMeter,"9382460cc8534e368589b0956a859f9f",timestamp)
+        FET_Publish_Station(PowerMeter1,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
+        FET_Publish_Station(PowerMeter2,"99b270cf07544505a91fe924062af584",timestamp)
+        FET_Publish_Station(PowerMeter3,"38e20a608eae40f49e2a1f1f6f286fea",timestamp)
+        FET_Publish_Station(MutiPowerMeter4,"e7c1671b6d59421996e74eade7e4f704",timestamp)
+        FET_Publish_Station(MutiPowerMeter5,"068fe7d2b16c477ca3f522815513c7f1",timestamp)
+        FET_Publish_Station(MutiPowerMeter6,"64688f1c2fe5453998c6c475eddbe5ac",timestamp)
+        FET_Publish_Station(MutiPowerMeter7,"f0c3a47d3f9942ce9e4f8ad4c3b085b1",timestamp)
+        FET_Publish_Station(MutiPowerMeter8,"677b94773d93483aa89aa6e869551499",timestamp)
+        FET_Publish_Station(MutiPowerMeter9,"a7517dd69de34ff99c1a859e3219afa3",timestamp)
+        FET_Publish_Station(MutiPowerMeter10,"30eb8f3a70ab4a259575720ca215d190",timestamp)
+        FET_Publish_Station(MutiPowerMeter11,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
+        FET_Publish_Station(MutiPowerMeter12,"ad680ae8fd9d4b8b8feaca7f1ebf9808",timestamp)
+        FET_Publish_Station(MutiPowerMeter13,"90682c1eec754930bb95cbce47955f99",timestamp)
+        FET_Publish_Station(MutiPowerMeter14,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
+        FlowMeter_Publish_Production(PowerMeter15,"9382460cc8534e368589b0956a859f9f",timestamp)
         
     except:
         pass

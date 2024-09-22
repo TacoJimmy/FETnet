@@ -10,193 +10,201 @@ import Mutiloop_PM
 import schedule
 import flowMeter
 
-'''
-# dev
-client = mqtt.Client('', True, None, mqtt.MQTTv31)
-client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-client.tls_set(cert_reqs=ssl.CERT_NONE)
-client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
-client.loop_start()
-time.sleep(1)
-client.on_connect
+def on_connect(client, userdata, flags, rc):
+    global is_connected
+    if rc == 0:
+        is_connected = True
+    else:
+        is_connected = False
 
-def FET_Connect():
+def on_disconnect(client, userdata, rc):
+    global is_connected
+    is_connected = False
+
+def MQTT_Connect_sta():
     try:
-        client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
-        client.loop_start()
+        global client_sta
+        client_sta = mqtt.Client('', True, None, mqtt.MQTTv31)
+        client_sta.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
+        client_sta.tls_set(cert_reqs=ssl.CERT_NONE)
+        client_sta.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
+        client_sta.loop_start()
         time.sleep(1)
-        client.on_connect
+        client_sta.on_connect
     except:
-        pass
-'''    
+        print("error_connect_Sta")
+
+def MQTT_Connect_pro():
+    try:
+        global client_pro
+        client_pro = mqtt.Client('', True, None, mqtt.MQTTv31)
+        client_pro.username_pw_set('infilink_ShangriLa2024TPE', '5WufQ879')
+        client_pro.tls_set(cert_reqs=ssl.CERT_NONE)
+        client_pro.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
+        client_pro.loop_start()
+        time.sleep(1)
+        client_pro.on_connect
+    except:
+        print("error_connect_Pro")
+
+def Connect_Mqtt_Pro():
+    try:
+        client_pro.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
+        return 1;
+    except:
+        return 0;
+
+def Connect_Mqtt_Sta():
+    try:
+        client_pro.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
+        return 1;
+    except:
+        return 0;
 
 def FET_Publish_Product(Meter_data,access_token,timestamp):
     try:
-        
-        client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', '5WufQ879')
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
-        client.loop_start()
-        time.sleep(1)
-        client.on_connect
-        time.sleep(1)
-        mod_payload = [
-            {"access_token":access_token,
-             "app":"ShangriLa2024TPE",
-             "type":"electricity_meter",
-             "data":[
-                 {"timestemp":timestamp,
-                  "values":{
-                      "voltage_r_s":Meter_data[1],
-                      "voltage_s_t":Meter_data[2],
-                      "voltage_t_r":Meter_data[3],
-                      "voltage_line_avg":Meter_data[4],
-                      "current_r":Meter_data[5],
-                      "current_s":Meter_data[6],
-                      "current_t":Meter_data[7],
-                      "current_phase_avg":Meter_data[8],
-                      "frequency":Meter_data[0],
-                      "power": Meter_data[9],
-                      "power_kvar":Meter_data[10],
-                      "energy":Meter_data[14],
-                      "immediate_demand":Meter_data[13],
-                      "pf":Meter_data[12],
-                      "alive":Meter_data[16],
-                      "type":"三相三線"
-                      }}]}
-            ]
+        con_mqtt = Connect_Mqtt_Pro()
+        if con_mqtt == 1:
+            mod_payload = [
+                {"access_token":access_token,
+                "app":"ShangriLa2024TPE",
+                "type":"electricity_meter",
+                "data":[
+                    {"timestemp":timestamp,
+                     "values":{
+                        "voltage_r_s":Meter_data[1],
+                        "voltage_s_t":Meter_data[2],
+                        "voltage_t_r":Meter_data[3],
+                        "voltage_line_avg":Meter_data[4],
+                        "current_r":Meter_data[5],
+                        "current_s":Meter_data[6],
+                        "current_t":Meter_data[7],
+                        "current_phase_avg":Meter_data[8],
+                        "frequency":Meter_data[0],
+                        "power": Meter_data[9],
+                        "power_kvar":Meter_data[10],
+                        "energy":Meter_data[14],
+                        "immediate_demand":Meter_data[13],
+                        "pf":Meter_data[12],
+                        "alive":Meter_data[16],
+                        "type":"三相三線"
+                        }}]}
+                ]
     
-        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-        time.sleep(10)
-        #print (data03)
-        #print (mod_payload)
+            data03 = client_pro.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+            time.sleep(5)
+            print ("Production= " + data03)
+            print ("Production= " + mod_payload)
+        else:
+            MQTT_Connect_pro()
+            time.sleep(5)
     except:
         pass
 
 def FET_Publish_Station(Meter_data,access_token,timestamp):
     try:
-        now = datetime.datetime.now()
-        timestamp = int(now.timestamp())
-        client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
-        client.loop_start()
-        time.sleep(1)
-        client.on_connect
-        time.sleep(1)
-        mod_payload = [
-            {"access_token":access_token,
-             "app":"ShangriLa2024TPE",
-             "type":"electricity_meter",
-             "data":[
-                 {"timestemp":timestamp,
-                  "values":{
-                      "voltage_r_s":Meter_data[1],
-                      "voltage_s_t":Meter_data[2],
-                      "voltage_t_r":Meter_data[3],
-                      "voltage_line_avg":Meter_data[4],
-                      "current_r":Meter_data[5],
-                      "current_s":Meter_data[6],
-                      "current_t":Meter_data[7],
-                      "current_phase_avg":Meter_data[8],
-                      "frequency":Meter_data[0],
-                      "power": Meter_data[9],
-                      "power_kvar":Meter_data[10],
-                      "energy":Meter_data[14],
-                      "immediate_demand":Meter_data[13],
-                      "pf":Meter_data[12],
-                      "alive":Meter_data[16],
-                      "type":"三相三線"
-                      }}]}
-            ]
+        con_mqtt = Connect_Mqtt_Sta()
+        if con_mqtt == 1:
+            mod_payload = [
+                {"access_token":access_token,
+                "app":"ShangriLa2024TPE",
+                "type":"electricity_meter",
+                "data":[
+                    {"timestemp":timestamp,
+                     "values":{
+                        "voltage_r_s":Meter_data[1],
+                        "voltage_s_t":Meter_data[2],
+                        "voltage_t_r":Meter_data[3],
+                        "voltage_line_avg":Meter_data[4],
+                        "current_r":Meter_data[5],
+                        "current_s":Meter_data[6],
+                        "current_t":Meter_data[7],
+                        "current_phase_avg":Meter_data[8],
+                        "frequency":Meter_data[0],
+                        "power": Meter_data[9],
+                        "power_kvar":Meter_data[10],
+                        "energy":Meter_data[14],
+                        "immediate_demand":Meter_data[13],
+                        "pf":Meter_data[12],
+                        "alive":Meter_data[16],
+                        "type":"三相三線"
+                        }}]}
+                ] 
     
-        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-        time.sleep(10)
-        #print (data03)
-        #print (mod_payload)
+            data03 = client_sta.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+            time.sleep(10)
+            print ("Station= " + data03)
+            print ("Station= " + mod_payload)
+        else:
+            MQTT_Connect_sta()
+            time.sleep(5)
     except:
         pass
 
 def FlowMeter_Publish_Station(Meter_data,access_token,timestamp):
     try:
-        now = datetime.datetime.now()
-        timestamp = int(now.timestamp())
-        client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', 'wCGTd25n')
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
-        client.loop_start()
-        time.sleep(1)
-        client.on_connect
-        time.sleep(1)
-        mod_payload = [
-            {"access_token":access_token,
-             "app":"ShangriLa2024TPE",
-             "type":"flow_meter",
-             "data":[
-                 {"timestemp":timestamp,
-                  "values":{
-                      "flowmeter_rt_volume_flow_rate":Meter_data[0],
-                      "flowmeter_rt_energy_gjhr":Meter_data[1],
-                      "flowmeter_rt_energy_rth":Meter_data[2],
-                      "flowmeter_rt_flow_rate":Meter_data[3],
-                      "flowmeter_total_volume_flow_rate":Meter_data[4],
-                      "flowmeter_total_energy_gjhr":Meter_data[5],
-                      "flowmeter_total_energy_rth":Meter_data[6],
-                      "flowmeter_temperature_inlet":Meter_data[7],
-                      "flowmeter_temperature_outlet":Meter_data[8],
-                      "alive":1
-                      }}]}
-            ]
-    
-        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+        con_mqtt = Connect_Mqtt_Sta()
+        if con_mqtt == 1:
+            mod_payload = [
+                {"access_token":access_token,
+                "app":"ShangriLa2024TPE",
+                "type":"flow_meter",
+                "data":[
+                    {"timestemp":timestamp,
+                     "values":{
+                        "flowmeter_rt_volume_flow_rate":Meter_data[0],
+                        "flowmeter_rt_energy_gjhr":Meter_data[1],
+                        "flowmeter_rt_energy_rth":Meter_data[2],
+                        "flowmeter_rt_flow_rate":Meter_data[3],
+                        "flowmeter_total_volume_flow_rate":Meter_data[4],
+                        "flowmeter_total_energy_gjhr":Meter_data[5],
+                        "flowmeter_total_energy_rth":Meter_data[6],
+                        "flowmeter_temperature_inlet":Meter_data[7],
+                        "flowmeter_temperature_outlet":Meter_data[8],
+                        "alive":1
+                        }}]}
+                ]
+        else:
+            MQTT_Connect_sta()
+            time.sleep(5)
+        data03 = client_sta.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
         time.sleep(10)
-        #print (data03)
-        #print (mod_payload)
+        print ("Station= " + data03)
+        print ("Station= " + mod_payload)
     except:
         pass
 
 def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
     try:
-        now = datetime.datetime.now()
-        timestamp = int(now.timestamp())
-        client = mqtt.Client('', True, None, mqtt.MQTTv31)
-        client.username_pw_set('infilink_ShangriLa2024TPE', '5WufQ879')
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
-        client.loop_start()
-        time.sleep(1)
-        client.on_connect
-        time.sleep(1)
-        mod_payload = [
-            {"access_token":access_token,
-             "app":"ShangriLa2024TPE",
-             "type":"flow_meter",
-             "data":[
-                 {"timestemp":timestamp,
-                  "values":{
-                      "flowmeter_rt_volume_flow_rate":Meter_data[0],
-                      "flowmeter_rt_energy_gjhr":Meter_data[1],
-                      "flowmeter_rt_energy_rth":Meter_data[2],
-                      "flowmeter_rt_flow_rate":Meter_data[3],
-                      "flowmeter_total_volume_flow_rate":Meter_data[4],
-                      "flowmeter_total_energy_gjhr":Meter_data[5],
-                      "flowmeter_total_energy_rth":Meter_data[6],
-                      "flowmeter_temperature_inlet":Meter_data[7],
-                      "flowmeter_temperature_outlet":Meter_data[8],
-                      "alive":1
-                      }}]}
-            ]
+        con_mqtt = Connect_Mqtt_Pro()
+        if con_mqtt == 1:
+            mod_payload = [
+                {"access_token":access_token,
+                "app":"ShangriLa2024TPE",
+                "type":"flow_meter",
+                "data":[
+                    {"timestemp":timestamp,
+                     "values":{
+                        "flowmeter_rt_volume_flow_rate":Meter_data[0],
+                        "flowmeter_rt_energy_gjhr":Meter_data[1],
+                        "flowmeter_rt_energy_rth":Meter_data[2],
+                        "flowmeter_rt_flow_rate":Meter_data[3],
+                        "flowmeter_total_volume_flow_rate":Meter_data[4],
+                        "flowmeter_total_energy_gjhr":Meter_data[5],
+                        "flowmeter_total_energy_rth":Meter_data[6],
+                        "flowmeter_temperature_inlet":Meter_data[7],
+                        "flowmeter_temperature_outlet":Meter_data[8],
+                        "alive":1
+                        }}]}
+                ]   
     
-        data03 = client.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-        time.sleep(10)
-        #print (data03)
-        #print (mod_payload)
+            data03 = client_pro.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
+            time.sleep(10)
+            print ("Production= " + data03)
+            print ("Production= " + mod_payload)
+        else:
+            MQTT_Connect_pro()
+            time.sleep(5)
     except:
         pass
 
@@ -204,8 +212,11 @@ def do_job():
     
     try:
         now = datetime.datetime.now()
-        timestamp = int(now.timestamp())
-    
+        aligned_minute = now.minute - (now.minute % 5)
+        aligned_time = now.replace(minute=aligned_minute, second=0, microsecond=0)
+        timestamp = int(time.mktime(aligned_time.timetuple()))
+        
+        
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
         FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
         FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
@@ -274,22 +285,17 @@ def do_job():
         MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,2)
         FET_Publish_Product(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
         FET_Publish_Station(MutiPowerMeter,"e37990074b0e499bbf0e5a3c27e7cccd",timestamp)
-        #pump04
-        #MutiPowerMeter = Mutiloop_PM.Read_MutiPowerMeter('/dev/ttyS7',15,3)
-        #FET_Publish_Product(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
-        #FET_Publish_Station(MutiPowerMeter,"a6b3600b6d004b3bae3966ac065c266e",timestamp)
-
-
-
+        
         PowerMeter = flowMeter.flow_meter('/dev/ttyS7',22,1)
         FlowMeter_Publish_Station(PowerMeter,"9382460cc8534e368589b0956a859f9f",timestamp)
         FlowMeter_Publish_Production(PowerMeter,"9382460cc8534e368589b0956a859f9f",timestamp)
+        
     except:
         pass
 
 
-schedule.every(5).minutes.do(do_job)
-#schedule.every(10).seconds.do(do_job)
+#schedule.every(5).minutes.do(do_job)
+schedule.every(10).seconds.do(do_job)
 
 if __name__ == "__main__":
     while True:

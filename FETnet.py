@@ -213,16 +213,18 @@ def do_job():
     
     try:
         now = datetime.now()
-    
+        print("1")
         aligned_minute = now.minute - (now.minute % 5)
+        print("2")
         aligned_time = now.replace(minute=aligned_minute, second=0, microsecond=0)
+        print("3")
         timestamp = int(time.mktime(aligned_time.timetuple()))
-        
-        
+        print("4")
+        print("a")
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',30,1)
         FET_Publish_Product(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
         FET_Publish_Station(PowerMeter,"4ebb30b3db7546b194334f7a0188b487",timestamp)
-    
+        print("b")
         PowerMeter = MBus.read_3p3w_meter('/dev/ttyS3',31,1)
         FET_Publish_Product(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)
         FET_Publish_Station(PowerMeter,"84f4d26e14bc45ddab170a48b9cc1e10",timestamp)

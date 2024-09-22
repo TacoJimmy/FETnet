@@ -14,7 +14,6 @@ def float_num(int16_1, int16_2):
     combined = (int16_2 << 16) | int16_1
     byte_data = struct.pack('<I', combined)
     float_value = struct.unpack('<f', byte_data)[0]
-
     return (float_value)
 
 
@@ -22,7 +21,7 @@ def read_3p3w_meter(PORT,ID,loop):
     loop = loop - 1
     MainPW_meter = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     try:
-        master = modbus_rtu.RtuMaster(serial.Serial(port=SERIAL_PORT, baudrate=BAUDRATE, bytesize=BYTESIZE, parity=PARITY, stopbits=STOPBITS, xonxoff=0))
+        master = modbus_rtu.RtuMaster(serial.Serial(port=PORT, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=0))
         master.set_timeout(5.0)
         master.set_verbose(True)
         pw_frq = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28672, 2)

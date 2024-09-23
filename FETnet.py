@@ -30,7 +30,7 @@ def MQTT_Connect_sta():
         client_sta.tls_set(cert_reqs=ssl.CERT_NONE)
         client_sta.connect('mqtt-device.fetiot3s1.fetnet.net', 8884 , 60)
         client_sta.loop_start()
-        time.sleep(1)
+        time.sleep(2)
         client_sta.on_connect
     except:
         print("error_connect_Sta")
@@ -43,7 +43,7 @@ def MQTT_Connect_pro():
         client_pro.tls_set(cert_reqs=ssl.CERT_NONE)
         client_pro.connect('mqtt-device.fetiot3p1.fetnet.net', 8884 , 60)
         client_pro.loop_start()
-        time.sleep(1)
+        time.sleep(2)
         client_pro.on_connect
     except:
         print("error_connect_Pro")
@@ -93,12 +93,12 @@ def FET_Publish_Product(Meter_data,access_token,timestamp):
                 ]
     
             data03 = client_pro.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-            time.sleep(5)
-            print ("Production= " + data03)
-            print ("Production= " + mod_payload)
+            time.sleep(2)
+            #print ("Production= " + data03)
+            #print ("Production= " + mod_payload)
         else:
             MQTT_Connect_pro()
-            time.sleep(5)
+            time.sleep(2)
     except:
         pass
 
@@ -133,9 +133,9 @@ def FET_Publish_Station(Meter_data,access_token,timestamp):
                 ] 
     
             data03 = client_sta.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-            time.sleep(10)
-            print ("Station= " + data03)
-            print ("Station= " + mod_payload)
+            time.sleep(2)
+            #print ("Station= " + data03)
+            #print ("Station= " + mod_payload)
         else:
             MQTT_Connect_sta()
             time.sleep(5)
@@ -167,11 +167,11 @@ def FlowMeter_Publish_Station(Meter_data,access_token,timestamp):
                 ]
         else:
             MQTT_Connect_sta()
-            time.sleep(5)
+            time.sleep(2)
         data03 = client_sta.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-        time.sleep(10)
-        print ("Station= " + data03)
-        print ("Station= " + mod_payload)
+        time.sleep(2)
+        #print ("Station= " + data03)
+        #print ("Station= " + mod_payload)
     except:
         pass
 
@@ -200,12 +200,12 @@ def FlowMeter_Publish_Production(Meter_data,access_token,timestamp):
                 ]   
     
             data03 = client_pro.publish('/SHANGRILA2024TPE/v1/telemetry/infilink',json.dumps(mod_payload))
-            time.sleep(5)
-            print ("Production= " + data03)
-            print ("Production= " + mod_payload)
+            time.sleep(2)
+            #print ("Production= " + data03)
+            #print ("Production= " + mod_payload)
         else:
             MQTT_Connect_pro()
-            time.sleep(5)
+            time.sleep(2)
     except:
         pass
 

@@ -25,7 +25,7 @@ def read_3p3w_meter(PORT,ID,loop):
         master.set_timeout(5.0)
         master.set_verbose(True)
         pw_frq = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28672, 2)
-        pw_v_u = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28674, 8)
+        pw_v_u = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28682, 8)
         #pw_v_u = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28682, 6)
         pw_i_l = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28690, 8)
         pw_power_w = master.execute(ID, cst.READ_HOLDING_REGISTERS, 28706, 2)

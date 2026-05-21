@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登入 · EMS Gateway</title>
+<link href="/static/bootstrap.min.css" rel="stylesheet">
+<link href="/static/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  html { font-size: 40px; }
+  body { background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { width: 100%; max-width: 18rem; }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <img src="/static/logo.svg" alt="INFILINK" style="height:2rem; object-fit:contain;">
+      </div>
+      <p class="text-muted small mb-4">EMS Gateway 設定管理</p>
+
+      {% if error %}
+      <div class="alert alert-danger py-1 px-3 mb-3 small">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/login" autocomplete="off">
+        <div class="mb-3">
+          <label class="form-label">帳號</label>
+          <input type="text" class="form-control" name="username" autofocus autocomplete="username">
+        </div>
+        <div class="mb-4">
+          <label class="form-label">密碼</label>
+          <input type="password" class="form-control" name="password" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-box-arrow-in-right me-1"></i>登入
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

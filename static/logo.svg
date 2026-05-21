@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 175">
+  <!-- I Letter (serif) -->
+  <rect x="58"  y="10"  width="54" height="10" rx="2" fill="#B07840"/>
+  <rect x="78"  y="20"  width="14" height="120" fill="#B07840"/>
+  <rect x="58"  y="140" width="54" height="10"  rx="2" fill="#B07840"/>
+
+  <!-- L Letter -->
+  <rect x="122" y="10"  width="14" height="130" fill="#B07840"/>
+  <rect x="122" y="140" width="74" height="10"  rx="2" fill="#B07840"/>
+  <!-- decorative serif curve at bottom-right of L -->
+  <path d="M190 140 Q208 140 211 148 Q214 158 204 161 L190 150 Z" fill="#B07840"/>
+
+  <!-- Cream band -->
+  <rect x="36" y="68" width="244" height="46" fill="#EDE7D8"/>
+
+  <!-- INFI in dark navy, LINK in green -->
+  <text x="48"  y="102"
+        font-family="Verdana,'DejaVu Sans',Arial,sans-serif"
+        font-weight="700" font-size="21" fill="#0B1E78" letter-spacing="4">INFI</text>
+  <text x="157" y="102"
+        font-family="Verdana,'DejaVu Sans',Arial,sans-serif"
+        font-weight="700" font-size="21" fill="#1D9E3A" letter-spacing="4">LINK</text>
+</svg>

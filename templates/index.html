@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光綺科技_EMS Gateway 設定管理</title>
+<link href="/static/bootstrap.min.css" rel="stylesheet">
+<link href="/static/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  /* 整體放大：Bootstrap 以 rem 為單位，調高根字體即可等比縮放 */
+  html { font-size: 40px; }
+
+  body { background: #f0f2f5; }
+  .tab-content { background: #fff; border: 1px solid #dee2e6; border-top: none; padding: 1.75rem 1.75rem 2.5rem; border-radius: 0 0 .5rem .5rem; }
+  .section-header { font-size: .75rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #6c757d; margin-bottom: .75rem; }
+  .test-result { font-family: monospace; font-size: .75rem; white-space: pre-wrap; max-height: 260px; overflow-y: auto; }
+  .table th { white-space: nowrap; }
+  .table td { white-space: nowrap; }
+  .table td input  { min-width: 5rem; width: 100%; box-sizing: border-box; }
+  .table td select { min-width: 7rem; width: 100%; box-sizing: border-box; }
+  .col-name   { min-width: 6rem; }
+  .col-id     { min-width: 4rem; }
+  .col-port   { min-width: 4.5rem; }
+  .col-type   { min-width: 8rem; }
+  .col-intv   { min-width: 4.5rem; }
+  .col-token  { min-width: 14rem; }
+  .col-ptype  { min-width: 5.5rem; }
+  .col-act    { min-width: 7rem; }
+  .col-del    { width: 3rem; }
+  .btn-toolbar { gap: .6rem; }
+  .badge-status { font-size: .75rem; padding: .3em .7em; }
+  .spinner-border-sm { width: 1rem; height: 1rem; }
+</style>
+</head>
+<body>
+<div class="container-fluid px-4 py-4">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <img src="/static/logo.svg" alt="INFILINK" style="height:2.5rem; object-fit:contain;">
+    <div>
+      <h5 class="mb-0 fw-bold">光綺科技_EMS Gateway 設定管理</h5>
+      <small class="text-muted">電表數據上行閘道器</small>
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <small class="text-muted"><i class="bi bi-person-circle me-1"></i>{{ username }}</small>
+      <a href="/logout" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>登出
+      </a>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs" id="mainTab" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" data-bs-toggle="tab" href="#tabMqtt">
+        <i class="bi bi-cloud-fill me-1"></i>MQTT 連線
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabMeters">
+        <i class="bi bi-hdd-stack me-1"></i>設備清單
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabTokens">
+        <i class="bi bi-key-fill me-1"></i>上行設定
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabAuth">
+        <i class="bi bi-person-lock me-1"></i>帳號設定
+      </a>
+    </li>
+    <li class="nav-item ms-auto">
+      <a class="nav-link text-success" data-bs-toggle="tab" href="#tabTest">
+        <i class="bi bi-play-circle-fill me-1"></i>連線測試
+      </a>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="mainTabContent">
+
+    <!-- ════════════════════════════════════════
+         Tab 1 · MQTT 連線設定
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade show active" id="tabMqtt" role="tabpanel">
+      <form id="mqttForm" autocomplete="off">
+
+        <p class="section-header">Broker 連線</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-8">
+            <label class="form-label">Broker 位址</label>
+            <input type="text" class="form-control" name="broker" placeholder="mqtt.example.com">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Port</label>
+            <input type="number" class="form-control" name="port" min="1" max="65535">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Publish Topic</label>
+            <input type="text" class="form-control" name="topic" placeholder="/LHUEMS/v1/telemetry/...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">帳號</label>
+            <input type="text" class="form-control" name="username">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">密碼</label>
+            <div class="input-group">
+              <input type="password" class="form-control" name="password" id="pwdInput">
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePwd()">
+                <i class="bi bi-eye" id="pwdIcon"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="section-header">TLS / 安全</p>
+        <div class="row g-3 mb-4">
+          <div class="col-auto">
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" name="use_tls" id="useTls">
+              <label class="form-check-label" for="useTls">啟用 TLS</label>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" name="tls_insecure" id="tlsInsecure">
+              <label class="form-check-label" for="tlsInsecure">略過憑證驗證</label>
+            </div>
+          </div>
+        </div>
+
+        <p class="section-header">逾時 / 重連</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label">Keepalive（秒）</label>
+            <input type="number" class="form-control" name="keepalive" min="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">連線逾時（秒）</label>
+            <input type="number" class="form-control" name="connect_timeout_sec" min="1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">重連最小延遲（秒）</label>
+            <input type="number" class="form-control" name="reconnect_min_delay_sec" min="1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">重連最大延遲（秒）</label>
+            <input type="number" class="form-control" name="reconnect_max_delay_sec" min="1">
+          </div>
+        </div>
+      </form>
+
+      <div class="d-flex btn-toolbar flex-wrap">
+        <button class="btn btn-primary" onclick="saveMqtt()">
+          <i class="bi bi-save me-1"></i>儲存設定
+        </button>
+        <a class="btn btn-outline-secondary" href="/api/mqtt/download">
+          <i class="bi bi-download me-1"></i>下載 JSON
+        </a>
+        <label class="btn btn-outline-secondary mb-0">
+          <i class="bi bi-upload me-1"></i>上傳 JSON
+          <input type="file" accept=".json" style="display:none" onchange="uploadCfg('mqtt',this)">
+        </label>
+      </div>
+      <div id="mqttMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 2 · 設備清單
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabMeters" role="tabpanel">
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="col-name">名稱</th>
+              <th class="col-id">Slave ID</th>
+              <th class="col-port">Port</th>
+              <th class="col-type">設備類型</th>
+              <th class="col-intv">發布間隔（秒）</th>
+              <th class="col-act">操作</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="metersTbody"></tbody>
+        </table>
+      </div>
+      <div class="d-flex btn-toolbar flex-wrap">
+        <button class="btn btn-success btn-sm" onclick="addMeter()">
+          <i class="bi bi-plus-circle me-1"></i>新增設備
+        </button>
+        <button class="btn btn-primary" onclick="saveMeters()">
+          <i class="bi bi-save me-1"></i>儲存設定
+        </button>
+        <a class="btn btn-outline-secondary" href="/api/meters/download">
+          <i class="bi bi-download me-1"></i>下載 JSON
+        </a>
+        <label class="btn btn-outline-secondary mb-0">
+          <i class="bi bi-upload me-1"></i>上傳 JSON
+          <input type="file" accept=".json" style="display:none" onchange="uploadCfg('meters',this)">
+        </label>
+      </div>
+      <div id="metersMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 3 · 上行設定 (Access Tokens)
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabTokens" role="tabpanel">
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="col-name">電表名稱</th>
+              <th class="col-token">Access Token</th>
+              <th class="col-ptype">Payload Type</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="tokensTbody"></tbody>
+        </table>
+      </div>
+      <div class="d-flex btn-toolbar flex-wrap">
+        <button class="btn btn-success btn-sm" onclick="addToken()">
+          <i class="bi bi-plus-circle me-1"></i>新增上行設定
+        </button>
+        <button class="btn btn-primary" onclick="saveTokens()">
+          <i class="bi bi-save me-1"></i>儲存設定
+        </button>
+        <a class="btn btn-outline-secondary" href="/api/tokens/download">
+          <i class="bi bi-download me-1"></i>下載 JSON
+        </a>
+        <label class="btn btn-outline-secondary mb-0">
+          <i class="bi bi-upload me-1"></i>上傳 JSON
+          <input type="file" accept=".json" style="display:none" onchange="uploadCfg('tokens',this)">
+        </label>
+      </div>
+      <div id="tokensMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 4 · 帳號設定
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabAuth" role="tabpanel">
+      <p class="section-header">修改帳號密碼</p>
+      <div class="row g-3" style="max-width:18rem;">
+        <div class="col-12">
+          <label class="form-label">目前密碼</label>
+          <input type="password" class="form-control" id="authCurrentPw" autocomplete="current-password">
+        </div>
+        <div class="col-12">
+          <label class="form-label">新帳號</label>
+          <input type="text" class="form-control" id="authNewUser" value="{{ username }}" autocomplete="off">
+        </div>
+        <div class="col-12">
+          <label class="form-label">新密碼</label>
+          <input type="password" class="form-control" id="authNewPw" autocomplete="new-password">
+        </div>
+        <div class="col-12">
+          <label class="form-label">確認新密碼</label>
+          <input type="password" class="form-control" id="authConfirmPw" autocomplete="new-password">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" onclick="changeAuth()">
+            <i class="bi bi-shield-check me-1"></i>更新帳號密碼
+          </button>
+        </div>
+      </div>
+      <div id="authMsg" class="mt-3"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 5 · 連線測試
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabTest" role="tabpanel">
+
+      <!-- Polling Control -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center gap-2">
+          <i class="bi bi-arrow-repeat"></i>輪詢控制
+          <span id="pollingBadge" class="badge bg-secondary ms-1">載入中</span>
+        </div>
+        <div class="card-body d-flex align-items-center gap-3 flex-wrap">
+          <button id="btnPause" class="btn btn-warning btn-sm" onclick="pausePolling()">
+            <i class="bi bi-pause-fill me-1"></i>暫停輪詢（60 秒）
+          </button>
+          <button id="btnResume" class="btn btn-success btn-sm d-none" onclick="resumePolling()">
+            <i class="bi bi-play-fill me-1"></i>立即啟用輪詢
+          </button>
+          <span id="pollingCountdown" class="text-muted small"></span>
+        </div>
+      </div>
+
+      <!-- MQTT Test -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-cloud-check-fill text-primary me-2"></i>MQTT 連線測試
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary" id="btnTestMqtt" onclick="testMqtt()">
+              <i class="bi bi-play-fill me-1"></i>測試連線
+            </button>
+            <span id="mqttTestBadge"></span>
+          </div>
+          <div id="mqttTestResult" class="mt-2 test-result text-muted"></div>
+        </div>
+      </div>
+
+      <!-- Meter Tests -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-hdd-stack text-success me-2"></i>設備讀取測試
+        </div>
+        <div class="card-body" id="meterTestArea">
+          <p class="text-muted mb-0">載入中…</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- tab-content -->
+</div><!-- container -->
+
+<script src="/static/bootstrap.bundle.min.js"></script>
+<script>
+// ──────────────────────────────────────────────────────────────
+//  State
+// ──────────────────────────────────────────────────────────────
+const DEVICE_TYPES = ['adtek_cpm12d', 'dae_PM210'];
+let metersData = [];
+let tokensData = [];   // [{ meter_name, token, payload_type }]
+
+// ──────────────────────────────────────────────────────────────
+//  Init
+// ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadMqtt();
+  loadMeters();
+  loadTokens();
+  const testTab = document.querySelector('a[href="#tabTest"]');
+  testTab.addEventListener('shown.bs.tab', () => { renderMeterTests(); startStatusPoll(); });
+  testTab.addEventListener('hidden.bs.tab', stopStatusPoll);
+});
+
+// ──────────────────────────────────────────────────────────────
+//  Utilities
+// ──────────────────────────────────────────────────────────────
+async function api(url, method = 'GET', body = null) {
+  const opts = { method, headers: {} };
+  if (body !== null) {
+    opts.body = JSON.stringify(body);
+    opts.headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(url, opts);
+  if (res.status === 401) { window.location.href = '/login'; return {}; }
+  return res.json();
+}
+
+function showMsg(id, text, ok) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="alert alert-${ok ? 'success' : 'danger'} py-1 px-3 mb-0">${text}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 3500);
+}
+
+function spin(btn, active) {
+  if (active) {
+    btn.disabled = true;
+    btn.dataset.orig = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>測試中…`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+function togglePwd() {
+  const inp = document.getElementById('pwdInput');
+  const ico = document.getElementById('pwdIcon');
+  if (inp.type === 'password') { inp.type = 'text'; ico.className = 'bi bi-eye-slash'; }
+  else { inp.type = 'password'; ico.className = 'bi bi-eye'; }
+}
+
+// ──────────────────────────────────────────────────────────────
+//  MQTT Tab
+// ──────────────────────────────────────────────────────────────
+async function loadMqtt() {
+  const d = await api('/api/mqtt');
+  const f = document.getElementById('mqttForm');
+  Object.entries(d).forEach(([k, v]) => {
+    const el = f.elements[k];
+    if (!el) return;
+    el.type === 'checkbox' ? (el.checked = !!v) : (el.value = v);
+  });
+}
+
+async function saveMqtt() {
+  const f = document.getElementById('mqttForm');
+  const d = {};
+  ['broker','topic','username','password'].forEach(k => d[k] = f.elements[k].value);
+  ['port','keepalive','connect_timeout_sec','reconnect_min_delay_sec','reconnect_max_delay_sec']
+    .forEach(k => d[k] = Number(f.elements[k].value));
+  ['use_tls','tls_insecure'].forEach(k => d[k] = f.elements[k].checked);
+  const r = await api('/api/mqtt', 'POST', d);
+  showMsg('mqttMsg', r.status === 'ok' ? '✓ MQTT 設定已儲存' : '✗ 儲存失敗', r.status === 'ok');
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Meters Tab
+// ──────────────────────────────────────────────────────────────
+async function loadMeters() {
+  metersData = await api('/api/meters');
+  renderMeters();
+}
+
+function renderMeters() {
+  const tb = document.getElementById('metersTbody');
+  tb.innerHTML = metersData.map((m, i) => `
+    <tr>
+      <td class="col-name"><input class="form-control form-control-sm" value="${esc(m.name)}"
+          oninput="metersData[${i}].name=this.value"></td>
+      <td class="col-id"><input type="number" class="form-control form-control-sm" value="${m.slave_id ?? ''}"
+          oninput="metersData[${i}].slave_id=+this.value"></td>
+      <td class="col-port"><input class="form-control form-control-sm" value="${esc(m.port)}"
+          oninput="metersData[${i}].port=this.value"></td>
+      <td class="col-type">
+        <select class="form-select form-select-sm" onchange="metersData[${i}].type=this.value">
+          ${DEVICE_TYPES.map(t => `<option value="${t}" ${m.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
+      <td class="col-intv"><input type="number" class="form-control form-control-sm" value="${m.publish_interval ?? 60}"
+          oninput="metersData[${i}].publish_interval=+this.value"></td>
+      <td class="col-act">
+        ${m.type === 'adtek_cpm12d' ? `
+        <button class="btn btn-outline-warning btn-sm" onclick="clearEnergy('${esc(m.name)}', this)">
+          <i class="bi bi-lightning-charge me-1"></i>清除電量
+        </button>` : ''}
+      </td>
+      <td class="col-del">
+        <button class="btn btn-outline-danger btn-sm" onclick="deleteMeter(${i})">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function addMeter() {
+  metersData.push({ name:'', slave_id:1, port:'COM4', type:'adtek_cpm12d', publish_interval:60 });
+  renderMeters();
+}
+
+function deleteMeter(i) {
+  metersData.splice(i, 1);
+  renderMeters();
+}
+
+async function saveMeters() {
+  const r = await api('/api/meters', 'POST', metersData);
+  showMsg('metersMsg', r.status==='ok' ? '✓ 設備清單已儲存' : '✗ 儲存失敗', r.status==='ok');
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Tokens Tab
+// ──────────────────────────────────────────────────────────────
+async function loadTokens() {
+  const dict = await api('/api/tokens');
+  tokensData = Object.entries(dict).map(([name, cfg]) => ({
+    meter_name: name,
+    token: cfg.token || '',
+    payload_type: cfg.payload_type || 'meter3p'
+  }));
+  renderTokens();
+}
+
+function renderTokens() {
+  const tb = document.getElementById('tokensTbody');
+  tb.innerHTML = tokensData.map((t, i) => `
+    <tr>
+      <td class="col-name"><input class="form-control form-control-sm" value="${esc(t.meter_name)}"
+          oninput="tokensData[${i}].meter_name=this.value"></td>
+      <td class="col-token"><input class="form-control form-control-sm font-monospace" value="${esc(t.token)}"
+          oninput="tokensData[${i}].token=this.value"></td>
+      <td class="col-ptype"><input class="form-control form-control-sm" value="${esc(t.payload_type)}"
+          oninput="tokensData[${i}].payload_type=this.value"></td>
+      <td class="col-del">
+        <button class="btn btn-outline-danger btn-sm" onclick="deleteToken(${i})">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function addToken() {
+  tokensData.push({ meter_name:'', token:'', payload_type:'meter3p' });
+  renderTokens();
+}
+
+function deleteToken(i) {
+  tokensData.splice(i, 1);
+  renderTokens();
+}
+
+async function saveTokens() {
+  const dict = {};
+  tokensData.forEach(t => { dict[t.meter_name] = { token: t.token, payload_type: t.payload_type }; });
+  const r = await api('/api/tokens', 'POST', dict);
+  showMsg('tokensMsg', r.status==='ok' ? '✓ 上行設定已儲存' : '✗ 儲存失敗', r.status==='ok');
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Upload (shared)
+// ──────────────────────────────────────────────────────────────
+async function uploadCfg(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch(`/api/${type}/upload`, { method:'POST', body:fd });
+  const r = await res.json();
+  const msgMap = { mqtt:'mqttMsg', meters:'metersMsg', tokens:'tokensMsg' };
+  showMsg(msgMap[type], r.status==='ok' ? '✓ 上傳成功' : '✗ 上傳失敗', r.status==='ok');
+  if (r.status === 'ok') {
+    if (type === 'mqtt')   loadMqtt();
+    if (type === 'meters') loadMeters();
+    if (type === 'tokens') loadTokens();
+  }
+  input.value = '';
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Test Tab · MQTT
+// ──────────────────────────────────────────────────────────────
+async function testMqtt() {
+  const btn    = document.getElementById('btnTestMqtt');
+  const badge  = document.getElementById('mqttTestBadge');
+  const result = document.getElementById('mqttTestResult');
+  spin(btn, true);
+  badge.innerHTML = '';
+  result.textContent = '';
+  try {
+    const r = await api('/api/test/mqtt', 'POST');
+    const ok = r.status === 'ok';
+    badge.innerHTML = `<span class="badge badge-status ${ok?'bg-success':'bg-danger'}">${ok?'✓ 成功':'✗ 失敗'}</span>`;
+    result.textContent = r.message;
+  } catch(e) {
+    badge.innerHTML = `<span class="badge badge-status bg-danger">✗ 錯誤</span>`;
+    result.textContent = e.toString();
+  }
+  spin(btn, false);
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Test Tab · Meters
+// ──────────────────────────────────────────────────────────────
+function renderMeterTests() {
+  const area = document.getElementById('meterTestArea');
+  if (!metersData.length) {
+    area.innerHTML = '<p class="text-muted mb-0">請先在「設備清單」tab 設定並儲存設備</p>';
+    return;
+  }
+  area.innerHTML = metersData.map(m => `
+    <div class="border rounded p-3 mb-3">
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+        <strong>${esc(m.name)}</strong>
+        <span class="text-muted small">${esc(m.type)} | ${esc(m.port)} | Slave ${m.slave_id}</span>
+        <button class="btn btn-primary btn-sm" id="btn_${esc(m.name)}"
+            onclick="testMeter('${esc(m.name)}', this)">
+          <i class="bi bi-play-fill me-1"></i>測試讀取
+        </button>
+        <span id="badge_${esc(m.name)}"></span>
+      </div>
+      <pre class="bg-light rounded p-2 test-result mb-0" id="result_${esc(m.name)}"></pre>
+    </div>`).join('');
+}
+
+async function testMeter(name, btn) {
+  const badge  = document.getElementById(`badge_${name}`);
+  const result = document.getElementById(`result_${name}`);
+  spin(btn, true);
+  badge.innerHTML = '';
+  result.textContent = '';
+  try {
+    const r = await api(`/api/test/meter/${encodeURIComponent(name)}`, 'POST');
+    const ok = r.status === 'ok';
+    badge.innerHTML = `<span class="badge badge-status ${ok?'bg-success':'bg-danger'}">${ok?'✓ 讀取成功':'✗ 失敗'}</span>`;
+    result.textContent = ok
+      ? JSON.stringify(r.data, null, 2)
+      : r.message + (r.data ? '\n' + JSON.stringify(r.data, null, 2) : '');
+  } catch(e) {
+    badge.innerHTML = `<span class="badge badge-status bg-danger">✗ 錯誤</span>`;
+    result.textContent = e.toString();
+  }
+  spin(btn, false);
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Test Tab · 輪詢控制
+// ──────────────────────────────────────────────────────────────
+let _statusTimer = null;
+
+function startStatusPoll() {
+  stopStatusPoll();
+  updatePollingStatus();
+  _statusTimer = setInterval(updatePollingStatus, 1000);
+}
+
+function stopStatusPoll() {
+  if (_statusTimer) { clearInterval(_statusTimer); _statusTimer = null; }
+}
+
+async function updatePollingStatus() {
+  try {
+    const r = await api('/api/polling/status');
+    const badge     = document.getElementById('pollingBadge');
+    const btnPause  = document.getElementById('btnPause');
+    const btnResume = document.getElementById('btnResume');
+    const countdown = document.getElementById('pollingCountdown');
+
+    if (r.paused) {
+      badge.className    = 'badge bg-warning text-dark ms-1';
+      badge.textContent  = '已暫停';
+      btnPause.classList.add('d-none');
+      btnResume.classList.remove('d-none');
+      countdown.textContent = `${r.resume_in} 秒後自動恢復`;
+    } else {
+      badge.className    = 'badge bg-success ms-1';
+      badge.textContent  = '輪詢中';
+      btnPause.classList.remove('d-none');
+      btnResume.classList.add('d-none');
+      countdown.textContent = '';
+    }
+  } catch (_) { /* 網路短暫中斷忽略 */ }
+}
+
+async function pausePolling() {
+  await api('/api/polling/pause', 'POST');
+  updatePollingStatus();
+}
+
+async function resumePolling() {
+  await api('/api/polling/resume', 'POST');
+  updatePollingStatus();
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Auth Tab · Change account / password
+// ──────────────────────────────────────────────────────────────
+async function changeAuth() {
+  const body = {
+    current_password: document.getElementById('authCurrentPw').value,
+    new_username:     document.getElementById('authNewUser').value,
+    new_password:     document.getElementById('authNewPw').value,
+    confirm_password: document.getElementById('authConfirmPw').value,
+  };
+  const r = await api('/api/auth/change', 'POST', body);
+  const ok = r.status === 'ok';
+  showMsg('authMsg', (ok ? '✓ ' : '✗ ') + r.message, ok);
+  if (ok) {
+    document.getElementById('authCurrentPw').value = '';
+    document.getElementById('authNewPw').value     = '';
+    document.getElementById('authConfirmPw').value = '';
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Meters Tab · Clear energy (adtek_cpm12d)
+// ──────────────────────────────────────────────────────────────
+async function clearEnergy(name, btn) {
+  if (!confirm(`確定要清除「${name}」的累計電量？此操作無法還原。`)) return;
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>清除中…`;
+  try {
+    const r = await api(`/api/meter/${encodeURIComponent(name)}/clear-energy`, 'POST');
+    const ok = r.status === 'ok';
+    showMsg('metersMsg', ok ? `✓ ${name} 累計電量已清除` : `✗ ${r.message}`, ok);
+  } catch(e) {
+    showMsg('metersMsg', `✗ ${e}`, false);
+  }
+  btn.disabled = false;
+  btn.innerHTML = orig;
+}
+
+// ──────────────────────────────────────────────────────────────
+//  XSS guard
+// ──────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

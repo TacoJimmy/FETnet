@@ -1,0 +1,13 @@
+{
+  "broker": "mqtt-device.fetiot3p1.fetnet.net",
+  "port": 8884,
+  "topic": "/LHUEMS/v1/telemetry/LHUEMS_device",
+  "username": "fet_YEFONGEMS",
+  "password": "A7fQ3mZ9Lb",
+  "use_tls": true,
+  "tls_insecure": true,
+  "keepalive": 60,
+  "connect_timeout_sec": 10,
+  "reconnect_min_delay_sec": 1,
+  "reconnect_max_delay_sec": 30
+}

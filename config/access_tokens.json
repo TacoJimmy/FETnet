@@ -1,0 +1,14 @@
+{
+  "meter_01": {
+    "token": "a97cf84b39914c209c49e95b112e2eb2",
+    "payload_type": "meter3p"
+  },
+  "meter_02": {
+    "token": "1b87abe261fe4e4f837461fe16789986",
+    "payload_type": "meter3p"
+  },
+  "meter_03": {
+    "token": "93b6c65745044fe88d6fdc81350ed9bb",
+    "payload_type": "meter3p"
+  }
+}

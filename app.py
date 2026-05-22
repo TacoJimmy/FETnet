@@ -688,7 +688,12 @@ def save_network_config():
             path = os.path.join(NETWORKD_DIR, f"10-{eth['interface']}.network")
             with open(path, "w") as f:
                 f.write(_networkd_eth_content(eth))
-        subprocess.run(["networkctl", "reload"], check=True, timeout=10)
+        # 先嘗試 reload（不中斷連線）；若 networkd 尚未啟動則啟動它
+        r = subprocess.run(["networkctl", "reload"], capture_output=True, timeout=10)
+        if r.returncode != 0:
+            subprocess.run(["systemctl", "start", "systemd-networkd"],
+                           capture_output=True, timeout=15)
+            subprocess.run(["networkctl", "reload"], capture_output=True, timeout=10)
     except Exception as e:
         errors.append(f"Ethernet：{e}")
 

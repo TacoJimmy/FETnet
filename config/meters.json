@@ -1,23 +1,16 @@
 [
   {
     "name": "meter_01",
-    "port": "COM4",
-    "publish_interval": 300,
+    "port": "COM6",
+    "publish_interval": 900,
     "slave_id": 1,
     "type": "adtek_cpm12d"
   },
   {
     "name": "meter_02",
-    "port": "COM4",
-    "publish_interval": 300,
-    "slave_id": 101,
-    "type": "dae_PM210"
-  },
-  {
-    "name": "meter_03",
     "slave_id": 1,
-    "port": "COM4",
+    "port": "COM6",
     "type": "adtek_cpm12d",
-    "publish_interval": 60
+    "publish_interval": 900
   }
 ]

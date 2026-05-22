@@ -68,6 +68,11 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabNetwork">
+        <i class="bi bi-diagram-3 me-1"></i>網路設定
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" data-bs-toggle="tab" href="#tabHardware">
         <i class="bi bi-cpu me-1"></i>硬體設定
       </a>
@@ -247,7 +252,149 @@
     </div>
 
     <!-- ════════════════════════════════════════
-         Tab 4 · 硬體設定
+         Tab 4 · 網路設定
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabNetwork" role="tabpanel">
+
+      <!-- 介面狀態 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-activity me-2"></i>目前介面狀態</span>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadNetworkStatus()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+        <div class="card-body d-flex flex-wrap gap-3" id="netStatusArea">
+          <span class="text-muted">載入中…</span>
+        </div>
+      </div>
+
+      <!-- 實體網路 1 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-ethernet me-2"></i>實體網路 1
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-auto">
+              <label class="form-label">介面名稱</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="eth0Interface" placeholder="eth0" style="max-width:7rem;">
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch mb-1">
+                <input class="form-check-input" type="checkbox" id="eth0Dhcp"
+                       onchange="toggleDhcp(0,this.checked)" style="width:2.5em;height:1.25em;">
+                <label class="form-check-label ms-2" for="eth0Dhcp">DHCP 自動取得 IP</label>
+              </div>
+            </div>
+          </div>
+          <div id="eth0Static" class="row g-3 mt-1 d-none">
+            <div class="col-sm-4">
+              <label class="form-label">IP 位址</label>
+              <input type="text" class="form-control form-control-sm" id="eth0Address" placeholder="192.168.1.100">
+            </div>
+            <div class="col-sm-2">
+              <label class="form-label">前綴長度</label>
+              <input type="number" class="form-control form-control-sm" id="eth0Prefix" min="1" max="32" placeholder="24">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">預設閘道</label>
+              <input type="text" class="form-control form-control-sm" id="eth0Gateway" placeholder="192.168.1.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">DNS <small class="text-muted">（空格分隔）</small></label>
+              <input type="text" class="form-control form-control-sm" id="eth0Dns" placeholder="8.8.8.8 8.8.4.4">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 實體網路 2 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-ethernet me-2"></i>實體網路 2
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-auto">
+              <label class="form-label">介面名稱</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="eth1Interface" placeholder="eth1" style="max-width:7rem;">
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch mb-1">
+                <input class="form-check-input" type="checkbox" id="eth1Dhcp"
+                       onchange="toggleDhcp(1,this.checked)" style="width:2.5em;height:1.25em;">
+                <label class="form-check-label ms-2" for="eth1Dhcp">DHCP 自動取得 IP</label>
+              </div>
+            </div>
+          </div>
+          <div id="eth1Static" class="row g-3 mt-1 d-none">
+            <div class="col-sm-4">
+              <label class="form-label">IP 位址</label>
+              <input type="text" class="form-control form-control-sm" id="eth1Address" placeholder="192.168.2.100">
+            </div>
+            <div class="col-sm-2">
+              <label class="form-label">前綴長度</label>
+              <input type="number" class="form-control form-control-sm" id="eth1Prefix" min="1" max="32" placeholder="24">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">預設閘道</label>
+              <input type="text" class="form-control form-control-sm" id="eth1Gateway" placeholder="192.168.2.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">DNS <small class="text-muted">（空格分隔）</small></label>
+              <input type="text" class="form-control form-control-sm" id="eth1Dns" placeholder="8.8.8.8 8.8.4.4">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4G (EG25-G) -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-reception-4 me-2"></i>4G 行動網路（EG25-G）
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="cellEnabled"
+                     style="width:2.5em;height:1.25em;">
+              <label class="form-check-label ms-2" for="cellEnabled">啟用 4G 連線</label>
+            </div>
+            <span id="cellStatusBadge"></span>
+          </div>
+          <div class="row g-3">
+            <div class="col-sm-3">
+              <label class="form-label">APN</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="cellApn" placeholder="WVPN">
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label">主要 DNS</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="cellDns1" placeholder="10.59.7.194">
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label">次要 DNS</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="cellDns2" placeholder="10.59.6.194">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex btn-toolbar flex-wrap">
+        <button class="btn btn-primary" onclick="saveNetworkConfig()">
+          <i class="bi bi-save me-1"></i>儲存並套用
+        </button>
+      </div>
+      <div id="networkMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 5 · 硬體設定
     ════════════════════════════════════════ -->
     <div class="tab-pane fade" id="tabHardware" role="tabpanel">
 
@@ -776,6 +923,96 @@ async function pausePolling() {
 async function resumePolling() {
   await api('/api/polling/resume', 'POST');
   updatePollingStatus();
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Network Tab
+// ──────────────────────────────────────────────────────────────
+document.querySelector('a[href="#tabNetwork"]').addEventListener('shown.bs.tab', () => {
+  loadNetworkConfig();
+  loadNetworkStatus();
+});
+
+async function loadNetworkConfig() {
+  const cfg = await api('/api/network/config');
+
+  const ethIds = ['eth0', 'eth1'];
+  (cfg.eth || []).forEach((e, i) => {
+    const id = ethIds[i];
+    document.getElementById(`${id}Interface`).value = e.interface || id;
+    document.getElementById(`${id}Dhcp`).checked    = e.dhcp !== false;
+    document.getElementById(`${id}Address`).value   = e.address  || '';
+    document.getElementById(`${id}Prefix`).value    = e.prefix   || '24';
+    document.getElementById(`${id}Gateway`).value   = e.gateway  || '';
+    document.getElementById(`${id}Dns`).value       = e.dns      || '';
+    document.getElementById(`${id}Static`).classList.toggle('d-none', e.dhcp !== false);
+  });
+
+  const cel = cfg.cellular || {};
+  document.getElementById('cellEnabled').checked = !!cel.enabled;
+  document.getElementById('cellApn').value        = cel.apn  || 'WVPN';
+  document.getElementById('cellDns1').value       = cel.dns1 || '10.59.7.194';
+  document.getElementById('cellDns2').value       = cel.dns2 || '10.59.6.194';
+}
+
+async function loadNetworkStatus() {
+  try {
+    const status = await api('/api/network/status');
+    if (status.status === 'fail') return;
+
+    const area = document.getElementById('netStatusArea');
+    const items = Object.entries(status);
+    if (!items.length) { area.innerHTML = '<span class="text-muted">無介面資訊</span>'; return; }
+
+    area.innerHTML = items.map(([name, info]) => `
+      <div class="border rounded px-3 py-2 d-flex align-items-center gap-2">
+        <code class="fw-bold">${esc(name)}</code>
+        <span class="badge ${info.up ? 'bg-success' : 'bg-secondary'}">${info.up ? 'UP' : 'DOWN'}</span>
+        <span class="small text-muted font-monospace">${esc(info.address || '無 IP')}</span>
+      </div>`).join('');
+
+    // 更新 4G badge
+    const cellBadge = document.getElementById('cellStatusBadge');
+    const wwan = items.find(([n]) => n.startsWith('wwan') || n.startsWith('ppp'));
+    cellBadge.innerHTML = wwan
+      ? `<span class="badge ${wwan[1].address ? 'bg-success' : 'bg-warning text-dark'}">${wwan[1].address || '已連線'}</span>`
+      : '<span class="badge bg-secondary">未連線</span>';
+  } catch(e) { console.error('loadNetworkStatus', e); }
+}
+
+function toggleDhcp(idx, dhcp) {
+  document.getElementById(`eth${idx}Static`).classList.toggle('d-none', dhcp);
+}
+
+async function saveNetworkConfig() {
+  const cfg = {
+    eth: [0, 1].map(i => {
+      const id = `eth${i}`;
+      return {
+        interface: document.getElementById(`${id}Interface`).value.trim() || `eth${i}`,
+        dhcp:      document.getElementById(`${id}Dhcp`).checked,
+        address:   document.getElementById(`${id}Address`).value.trim(),
+        prefix:    document.getElementById(`${id}Prefix`).value.trim()   || '24',
+        gateway:   document.getElementById(`${id}Gateway`).value.trim(),
+        dns:       document.getElementById(`${id}Dns`).value.trim(),
+      };
+    }),
+    cellular: {
+      enabled: document.getElementById('cellEnabled').checked,
+      apn:  document.getElementById('cellApn').value.trim()  || 'WVPN',
+      dns1: document.getElementById('cellDns1').value.trim() || '10.59.7.194',
+      dns2: document.getElementById('cellDns2').value.trim() || '10.59.6.194',
+    },
+  };
+
+  const r = await api('/api/network/config', 'POST', cfg);
+  showMsg('networkMsg',
+    r.status === 'ok'      ? '✓ 網路設定已套用'         :
+    r.status === 'partial' ? `⚠ 部分套用失敗：${r.message}` :
+                             `✗ ${r.message}`,
+    r.status === 'ok');
+  if (r.status === 'ok' || r.status === 'partial')
+    setTimeout(loadNetworkStatus, 2000);
 }
 
 // ──────────────────────────────────────────────────────────────

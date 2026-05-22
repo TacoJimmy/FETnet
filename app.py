@@ -597,6 +597,21 @@ def resume_polling():
 
 
 # ── 硬體設定 ─────────────────────────────────────────────────────
+TIMESYNCD_CONF_D = "/etc/systemd/timesyncd.conf.d"
+TIMESYNCD_CUSTOM = os.path.join(TIMESYNCD_CONF_D, "99-custom.conf")
+
+def _read_timesyncd_custom() -> tuple[str, str]:
+    ntp = fallback = ""
+    if os.path.exists(TIMESYNCD_CUSTOM):
+        with open(TIMESYNCD_CUSTOM) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("NTP="):
+                    ntp = line[4:].strip()
+                elif line.startswith("FallbackNTP="):
+                    fallback = line[12:].strip()
+    return ntp, fallback
+
 def _timedatectl_props() -> dict:
     result = subprocess.run(
         ["timedatectl", "show"], capture_output=True, text=True, timeout=5
@@ -619,6 +634,61 @@ def system_info():
     except Exception as e:
         logger.error("system_info 錯誤: %s", e)
         return jsonify({"status": "fail", "message": str(e)}), 500
+
+@app.route("/api/system/ntp/detail", methods=["GET"])
+def ntp_detail():
+    try:
+        # 從 timedatectl show-timesync 取得目前使用的伺服器與同步細節
+        ts = subprocess.run(
+            ["timedatectl", "show-timesync", "--all"],
+            capture_output=True, text=True, timeout=5
+        )
+        ts_props = {}
+        for line in ts.stdout.splitlines():
+            k, _, v = line.partition("=")
+            ts_props[k.strip()] = v.strip()
+
+        # 人類可讀的同步狀態
+        st = subprocess.run(
+            ["timedatectl", "timesync-status"],
+            capture_output=True, text=True, timeout=5
+        )
+
+        # 從自訂設定檔讀取已儲存的伺服器設定
+        ntp, fallback = _read_timesyncd_custom()
+
+        return jsonify({
+            "current_server":     ts_props.get("ServerName", ""),
+            "current_server_ip":  ts_props.get("ServerAddress", ""),
+            "system_ntp":         ts_props.get("SystemNTPServers", ""),
+            "fallback_ntp":       ts_props.get("FallbackNTPServers", ""),
+            "configured_ntp":     ntp,
+            "configured_fallback": fallback,
+            "status_text":        st.stdout.strip() or st.stderr.strip(),
+        })
+    except Exception as e:
+        logger.error("ntp_detail 錯誤: %s", e)
+        return jsonify({"status": "fail", "message": str(e)}), 500
+
+@app.route("/api/system/ntp/config", methods=["POST"])
+def save_ntp_config():
+    body     = request.json
+    ntp      = body.get("ntp",      "").strip()
+    fallback = body.get("fallback", "").strip()
+    try:
+        os.makedirs(TIMESYNCD_CONF_D, exist_ok=True)
+        lines = ["[Time]\n"]
+        if ntp:      lines.append(f"NTP={ntp}\n")
+        if fallback: lines.append(f"FallbackNTP={fallback}\n")
+        with open(TIMESYNCD_CUSTOM, "w") as f:
+            f.writelines(lines)
+        subprocess.run(
+            ["systemctl", "restart", "systemd-timesyncd"],
+            check=True, timeout=10
+        )
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)})
 
 @app.route("/api/system/ntp", methods=["POST"])
 def set_ntp():

@@ -11,6 +11,7 @@ import logging
 import os
 import ssl
 import sqlite3
+import re
 import subprocess
 import threading
 import time
@@ -722,20 +723,58 @@ def network_status():
 
 
 # ── 硬體設定 ─────────────────────────────────────────────────────
-TIMESYNCD_CONF_D = "/etc/systemd/timesyncd.conf.d"
-TIMESYNCD_CUSTOM = os.path.join(TIMESYNCD_CONF_D, "99-custom.conf")
+TIMESYNCD_CONF = "/etc/systemd/timesyncd.conf"
 
-def _read_timesyncd_custom() -> tuple[str, str]:
+def _read_timesyncd_conf() -> tuple[str, str]:
+    """讀取 /etc/systemd/timesyncd.conf 中有效（未被 # 註解）的 NTP 設定"""
     ntp = fallback = ""
-    if os.path.exists(TIMESYNCD_CUSTOM):
-        with open(TIMESYNCD_CUSTOM) as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("NTP="):
-                    ntp = line[4:].strip()
-                elif line.startswith("FallbackNTP="):
-                    fallback = line[12:].strip()
+    if not os.path.exists(TIMESYNCD_CONF):
+        return ntp, fallback
+    with open(TIMESYNCD_CONF) as f:
+        for line in f:
+            s = line.strip()
+            if re.match(r'^NTP\s*=', s):
+                ntp = s.split("=", 1)[1].strip()
+            elif re.match(r'^FallbackNTP\s*=', s):
+                fallback = s.split("=", 1)[1].strip()
     return ntp, fallback
+
+def _write_timesyncd_conf(ntp: str, fallback: str):
+    """在 /etc/systemd/timesyncd.conf 的 [Time] 區段更新 NTP= 與 FallbackNTP="""
+    if os.path.exists(TIMESYNCD_CONF):
+        with open(TIMESYNCD_CONF) as f:
+            lines = f.readlines()
+    else:
+        lines = ["[Time]\n"]
+
+    in_time = False
+    ntp_done = fallback_done = False
+    result = []
+
+    for line in lines:
+        s = line.strip()
+        if s.startswith("["):
+            in_time = (s == "[Time]")
+        if in_time and re.match(r'^\s*#?\s*NTP\s*=', line):
+            if not ntp_done:
+                result.append(f"NTP={ntp}\n" if ntp else "#NTP=\n")
+                ntp_done = True
+            continue
+        if in_time and re.match(r'^\s*#?\s*FallbackNTP\s*=', line):
+            if not fallback_done:
+                result.append(f"FallbackNTP={fallback}\n" if fallback else "#FallbackNTP=\n")
+                fallback_done = True
+            continue
+        result.append(line)
+
+    # 若 [Time] 區段內沒有對應的行，補在最後
+    if not ntp_done and ntp:
+        result.append(f"NTP={ntp}\n")
+    if not fallback_done and fallback:
+        result.append(f"FallbackNTP={fallback}\n")
+
+    with open(TIMESYNCD_CONF, "w") as f:
+        f.writelines(result)
 
 def _timedatectl_props() -> dict:
     result = subprocess.run(
@@ -779,8 +818,8 @@ def ntp_detail():
             capture_output=True, text=True, timeout=5
         )
 
-        # 從自訂設定檔讀取已儲存的伺服器設定
-        ntp, fallback = _read_timesyncd_custom()
+        # 從設定檔讀取已儲存的伺服器設定
+        ntp, fallback = _read_timesyncd_conf()
 
         return jsonify({
             "current_server":     ts_props.get("ServerName", ""),
@@ -801,12 +840,7 @@ def save_ntp_config():
     ntp      = body.get("ntp",      "").strip()
     fallback = body.get("fallback", "").strip()
     try:
-        os.makedirs(TIMESYNCD_CONF_D, exist_ok=True)
-        lines = ["[Time]\n"]
-        if ntp:      lines.append(f"NTP={ntp}\n")
-        if fallback: lines.append(f"FallbackNTP={fallback}\n")
-        with open(TIMESYNCD_CUSTOM, "w") as f:
-            f.writelines(lines)
+        _write_timesyncd_conf(ntp, fallback)
         subprocess.run(
             ["systemctl", "restart", "systemd-timesyncd"],
             check=True, timeout=10

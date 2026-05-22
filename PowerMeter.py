@@ -40,24 +40,24 @@ DEVICE_CONFIGS = {
     },
     "adtek_cpm12d": {
         "registers": {
-            "voltage_r_s": (0x0131, 2, 0.1),  # 32-bit unsigned，需要除以 10
-            "voltage_s_t": (0x0133, 2, 0.1),
-            "voltage_t_r": (0x0135, 2, 0.1),
-            "current_r": (0x0141, 2, 0.001),  # 需要除以 1000
-            "current_s": (0x0143, 2, 0.001),
-            "current_t": (0x0145, 2, 0.001),
-            "frequency": (0x0130, 1, 0.01),
-            "power": (0x0151, 2, 0.001, "signed"),  # 32-bit signed，需要除以 1000
-            "power_kva": (0x0161, 2, 0.001, "signed"),
-            "pf": (0x0166, 1, 0.001, "signed"),  # 有符號，需要除以 1000
-            "energy": (0x0185, 2, 0.1),  # 需要除以 100
-            "immediate_demand": (0x016A, 2, 0.001),
+            "frequency":        (0x7000, 2, None),  # FREQ
+            "voltage_r_s":      (0x700A, 2, None),  # U12 線電壓 R-S
+            "voltage_s_t":      (0x700C, 2, None),  # U23 線電壓 S-T
+            "voltage_t_r":      (0x700E, 2, None),  # U31 線電壓 T-R
+            "current_r":        (0x7012, 2, None),  # I1
+            "current_s":        (0x7014, 2, None),  # I2
+            "current_t":        (0x7016, 2, None),  # I3
+            "power":            (0x7022, 2, 0.001),  # P.SUM 總有效功率
+            "power_kva":        (0x7032, 2, 0.001),  # S.SUM 總視在功率
+            "pf":               (0x703A, 2, None),  # PF.AVG 平均功率因數
+            "energy":           (0x7064, 2, None),  # kWh-Total 總有效電能
+            "immediate_demand": (0x7042, 2, 0.001),  # P.DM. 總有效功率需量 W→kW
         },
         "decimals": {
             "voltage_r_s": 1, "voltage_s_t": 1, "voltage_t_r": 1,
-            "current_r": 2, "current_s": 2, "current_t": 2,
-            "frequency": 2, "power": 2, "power_kva": 2,
-            "pf": 3, "energy": 2, "immediate_demand": 3,
+            "current_r": 3, "current_s": 3, "current_t": 3,
+            "frequency": 2, "power": 1, "power_kva": 1,
+            "pf": 3, "energy": 1, "immediate_demand": 4,
         }
     }
 }
@@ -203,14 +203,8 @@ class MeterReader:
                 decimals = device_config["decimals"]
 
                 for key, reg_config in config.items():
-                    if len(reg_config) == 4:
-                        addr, count, factor, signed_flag = reg_config
-                        signed = (signed_flag == "signed")
-                    else:
-                        addr, count, factor = reg_config
-                        signed = False
-                    
-                    value = self._read_register_value(port, addr, count, slave_id, device_type, signed)
+                    addr, count, factor = reg_config[:3]
+                    value = self._read_register_value(port, addr, count, slave_id, device_type)
                     if value is not None:
                         if factor is not None:
                             value = value * factor
@@ -228,23 +222,10 @@ class MeterReader:
         logger.warning(f"無法讀取 {device_type}，已重試 3 次")
         return default_data
 
-    def _read_register_value(self, port, address, count, slave_id, device_type, signed=False):
+    def _read_register_value(self, port, address, count, slave_id, device_type):
         """根據設備類型讀取寄存器值"""
         if device_type == "adtek_cpm12d":
-            if count == 1:
-                if signed:
-                    # ADTEK 的有符號單字節數據
-                    return self.read_data1byte_signed(port, address, count, slave_id)
-                else:
-                    # ADTEK 的無符號單字節數據
-                    return self.read_data1byte(port, address, count, slave_id)
-            else:
-                if signed:
-                    # ADTEK 的有符號雙字節數據 (32-bit signed)
-                    return self.read_int32(port, address, count, slave_id)
-                else:
-                    # ADTEK 的無符號雙字節數據 (32-bit unsigned)
-                    return self.read_uint32(port, address, count, slave_id)
+            return self.read_float32(port, address, count, slave_id)
         elif count == 1:
             return self.read_data1byte(port, address, count, slave_id)
         else:
@@ -272,8 +253,7 @@ if __name__ == "__main__":
     reader = MeterReader()
 
     test_devices = [
-        {"name": "meter_01", "slave_id": 1, "port": "COM4", "type": "adtek_cpm12d"},
-        {"name": "meter_02", "slave_id": 101, "port": "COM4", "type": "dae_PM210"},
+        {"name": "meter_01", "slave_id": 1, "port": "COM6", "type": "adtek_cpm12d"}
     ]
 
     try:

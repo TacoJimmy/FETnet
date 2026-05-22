@@ -78,6 +78,11 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabPing">
+        <i class="bi bi-broadcast me-1"></i>Ping 監控
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" data-bs-toggle="tab" href="#tabAuth">
         <i class="bi bi-person-lock me-1"></i>帳號設定
       </a>
@@ -504,6 +509,72 @@
       </div>
 
       <div id="hwMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Ping 監控
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabPing" role="tabpanel">
+
+      <!-- 狀態卡 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-activity me-2"></i>監控狀態</span>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadPingStatus()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+        <div class="card-body" id="pingStatusArea">
+          <span class="text-muted">載入中…</span>
+        </div>
+      </div>
+
+      <!-- 設定卡 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-gear me-2"></i>監控設定
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="pingEnabled"
+                     style="width:2.5em;height:1.25em;">
+              <label class="form-check-label ms-2" for="pingEnabled">啟用定時 Ping 監控</label>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-sm-4">
+              <label class="form-label">目標 IP 1</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="pingIp1" placeholder="10.59.7.194">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">目標 IP 2</label>
+              <input type="text" class="form-control form-control-sm font-monospace"
+                     id="pingIp2" placeholder="10.59.6.194">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Ping 間隔（秒）</label>
+              <input type="number" class="form-control form-control-sm"
+                     id="pingInterval" min="10" placeholder="600">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">持續失聯重開機閾值（秒）
+                <small class="text-muted ms-1">預設 3600</small>
+              </label>
+              <input type="number" class="form-control form-control-sm"
+                     id="pingRebootAfter" min="60" placeholder="3600">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex btn-toolbar flex-wrap">
+        <button class="btn btn-primary" onclick="savePingConfig()">
+          <i class="bi bi-save me-1"></i>儲存設定
+        </button>
+      </div>
+      <div id="pingMsg" class="mt-2"></div>
     </div>
 
     <!-- ════════════════════════════════════════
@@ -1013,6 +1084,92 @@ async function saveNetworkConfig() {
     r.status === 'ok');
   if (r.status === 'ok' || r.status === 'partial')
     setTimeout(loadNetworkStatus, 2000);
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Ping 監控 Tab
+// ──────────────────────────────────────────────────────────────
+let _pingTimer = null;
+
+document.querySelector('a[href="#tabPing"]').addEventListener('shown.bs.tab', () => {
+  loadPingConfig();
+  loadPingStatus();
+  _pingTimer = setInterval(loadPingStatus, 5000);
+});
+document.querySelector('a[href="#tabPing"]').addEventListener('hidden.bs.tab', () => {
+  clearInterval(_pingTimer); _pingTimer = null;
+});
+
+async function loadPingConfig() {
+  const cfg = await api('/api/ping/config');
+  document.getElementById('pingEnabled').checked      = !!cfg.enabled;
+  document.getElementById('pingIp1').value            = cfg.ip1          || '10.59.7.194';
+  document.getElementById('pingIp2').value            = cfg.ip2          || '10.59.6.194';
+  document.getElementById('pingInterval').value       = cfg.interval     || 600;
+  document.getElementById('pingRebootAfter').value    = cfg.reboot_after || 3600;
+}
+
+async function loadPingStatus() {
+  try {
+    const s   = await api('/api/ping/status');
+    const now = Date.now() / 1000;
+    const area = document.getElementById('pingStatusArea');
+
+    function ipRow(ip, ok, last) {
+      const badge = ok === null
+        ? '<span class="badge bg-secondary">尚未檢測</span>'
+        : ok ? '<span class="badge bg-success">✓ 正常</span>'
+             : '<span class="badge bg-danger">✗ 失聯</span>';
+      const ago = last ? `最後檢測：${Math.round(now - last)} 秒前` : '';
+      return `<div class="d-flex align-items-center gap-3 mb-2">
+        <code class="fw-bold" style="min-width:10rem">${esc(ip)}</code>
+        ${badge}
+        <small class="text-muted">${ago}</small>
+      </div>`;
+    }
+
+    let html = ipRow(s.ip1, s.ip1_ok, s.ip1_last)
+             + ipRow(s.ip2, s.ip2_ok, s.ip2_last);
+
+    // 累計失聯次數
+    const countBadge = s.fail_count > 0
+      ? `<span class="badge bg-danger ms-1">${s.fail_count}</span>`
+      : `<span class="badge bg-success ms-1">0</span>`;
+    html += `<div class="mt-2 small">兩 IP 同時失聯累計次數：${countBadge}
+      <span class="text-muted ms-2">（有任一 IP 可達即歸零）</span></div>`;
+
+    if (!s.enabled) {
+      html += '<small class="text-muted d-block mt-1">監控已停用</small>';
+    } else if (s.ip1_last) {
+      const lastTs = Math.max(s.ip1_last || 0, s.ip2_last || 0);
+      const nextIn = Math.max(0, s.interval - Math.round(now - lastTs));
+      html += `<small class="text-muted d-block mt-1">下次檢測：約 ${nextIn} 秒後</small>`;
+    }
+
+    if (s.both_fail_since) {
+      const remaining = Math.max(0, s.reboot_after - s.fail_duration);
+      html += `<div class="alert alert-danger mt-3 mb-0 py-2 px-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        兩個 IP 同時失聯，已持續 <strong>${s.fail_duration}</strong> 秒，
+        累計失聯 <strong>${s.fail_count}</strong> 次，
+        還有 <strong>${remaining}</strong> 秒後將自動重新開機
+      </div>`;
+    }
+
+    area.innerHTML = html;
+  } catch(e) { console.error('loadPingStatus', e); }
+}
+
+async function savePingConfig() {
+  const cfg = {
+    enabled:      document.getElementById('pingEnabled').checked,
+    ip1:          document.getElementById('pingIp1').value.trim()          || '10.59.7.194',
+    ip2:          document.getElementById('pingIp2').value.trim()          || '10.59.6.194',
+    interval:     parseInt(document.getElementById('pingInterval').value)  || 60,
+    reboot_after: parseInt(document.getElementById('pingRebootAfter').value) || 3600,
+  };
+  const r = await api('/api/ping/config', 'POST', cfg);
+  showMsg('pingMsg', r.status === 'ok' ? '✓ 設定已儲存' : `✗ ${r.message}`, r.status === 'ok');
 }
 
 // ──────────────────────────────────────────────────────────────

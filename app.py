@@ -82,6 +82,7 @@ METERS_FILE = os.path.join(CONFIG_DIR, "meters.json")
 TOKENS_FILE = os.path.join(CONFIG_DIR, "access_tokens.json")
 AUTH_FILE    = os.path.join(CONFIG_DIR, "auth.json")
 NETWORK_FILE = os.path.join(CONFIG_DIR, "network.json")
+PING_FILE    = os.path.join(CONFIG_DIR, "ping_watchdog.json")
 
 
 def _get_secret_key() -> bytes:
@@ -598,6 +599,121 @@ def resume_polling():
     return jsonify({"status": "running"})
 
 
+# ── Ping 監控 ────────────────────────────────────────────────────
+_PING_DEFAULT: dict = {
+    "enabled":      False,
+    "ip1":          "10.59.7.194",
+    "ip2":          "10.59.6.194",
+    "interval":     600,   # 預設每 10 分鐘 ping 一次
+    "reboot_after": 3600,
+}
+
+_ping_lock  = threading.Lock()
+_ping_state = {
+    "ip1_ok":          None,
+    "ip1_last":        0.0,
+    "ip2_ok":          None,
+    "ip2_last":        0.0,
+    "both_fail_since": None,
+    "fail_count":      0,    # 連續兩 IP 同時失聯的累計次數
+}
+
+def _load_ping_cfg() -> dict:
+    if os.path.exists(PING_FILE):
+        return {**_PING_DEFAULT, **_load_cfg(PING_FILE)}
+    return dict(_PING_DEFAULT)
+
+def _do_ping(ip: str) -> bool:
+    try:
+        r = subprocess.run(["ping", "-c", "1", "-W", "2", ip],
+                           capture_output=True, timeout=5)
+        return r.returncode == 0
+    except Exception:
+        return False
+
+def ping_watchdog_loop():
+    last_ping = 0.0
+    while True:
+        time.sleep(5)
+        cfg = _load_ping_cfg()
+
+        if not cfg.get("enabled", False):
+            with _ping_lock:
+                _ping_state["both_fail_since"] = None
+            continue
+
+        now      = time.time()
+        interval = max(10, int(cfg.get("interval", 60)))
+        if now - last_ping < interval:
+            continue
+
+        ip1 = cfg.get("ip1", "10.59.7.194")
+        ip2 = cfg.get("ip2", "10.59.6.194")
+        reboot_after = max(60, int(cfg.get("reboot_after", 3600)))
+
+        ip1_ok = _do_ping(ip1)
+        ip2_ok = _do_ping(ip2)
+        ts = time.time()
+        last_ping = ts
+        logger.debug("Ping：%s=%s  %s=%s", ip1, ip1_ok, ip2, ip2_ok)
+
+        with _ping_lock:
+            _ping_state["ip1_ok"]   = ip1_ok
+            _ping_state["ip1_last"] = ts
+            _ping_state["ip2_ok"]   = ip2_ok
+            _ping_state["ip2_last"] = ts
+
+            both_fail = not ip1_ok and not ip2_ok
+            if both_fail:
+                _ping_state["fail_count"] += 1
+                if _ping_state["both_fail_since"] is None:
+                    _ping_state["both_fail_since"] = ts
+                    logger.warning("Ping 監控：%s 及 %s 同時失聯，開始計時（第 %d 次）",
+                                   ip1, ip2, _ping_state["fail_count"])
+                fail_dur = ts - _ping_state["both_fail_since"]
+                if fail_dur >= reboot_after:
+                    logger.warning("Ping 監控：持續 %.0f 秒失聯（累計 %d 次），觸發重新開機",
+                                   fail_dur, _ping_state["fail_count"])
+                    subprocess.Popen(["systemctl", "reboot"])
+            else:
+                if _ping_state["fail_count"] > 0:
+                    logger.info("Ping 監控：連線已恢復，重置失聯計數（原 %d 次）",
+                                _ping_state["fail_count"])
+                _ping_state["fail_count"]      = 0
+                _ping_state["both_fail_since"] = None
+
+
+@app.route("/api/ping/config", methods=["GET"])
+def get_ping_config():
+    return jsonify(_load_ping_cfg())
+
+@app.route("/api/ping/config", methods=["POST"])
+def save_ping_config():
+    _save_cfg(PING_FILE, request.json)
+    return jsonify({"status": "ok"})
+
+@app.route("/api/ping/status", methods=["GET"])
+def get_ping_status():
+    cfg = _load_ping_cfg()
+    with _ping_lock:
+        state = dict(_ping_state)
+    now = time.time()
+    return jsonify({
+        "enabled":         cfg.get("enabled", False),
+        "ip1":             cfg.get("ip1", ""),
+        "ip2":             cfg.get("ip2", ""),
+        "interval":        cfg.get("interval", 60),
+        "reboot_after":    cfg.get("reboot_after", 3600),
+        "ip1_ok":          state["ip1_ok"],
+        "ip1_last":        state["ip1_last"],
+        "ip2_ok":          state["ip2_ok"],
+        "ip2_last":        state["ip2_last"],
+        "both_fail_since": state["both_fail_since"],
+        "fail_duration":   round(now - state["both_fail_since"]) if state["both_fail_since"] else 0,
+        "fail_count":      state["fail_count"],
+    })
+
+
 # ── 網路設定 ─────────────────────────────────────────────────────
 NETWORKD_DIR  = "/etc/systemd/network"
 CELLULAR_CONF = os.path.join(NETWORKD_DIR, "20-wwan.network")
@@ -902,6 +1018,11 @@ def main():
     wt = threading.Thread(target=watchdog_loop, daemon=True, name="Watchdog")
     wt.start()
     logger.info("Watchdog 已啟動（逾時 %s 秒）", WATCHDOG_TIMEOUT)
+
+    # Ping 監控執行緒
+    pt = threading.Thread(target=ping_watchdog_loop, daemon=True, name="PingWatchdog")
+    pt.start()
+    logger.info("Ping 監控執行緒已啟動")
 
     # 資料採集在背景執行緒運行（daemon=True 讓主程式結束時自動關閉）
     t = threading.Thread(target=collection_loop, daemon=True, name="CollectionLoop")

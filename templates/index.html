@@ -68,6 +68,11 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="tab" href="#tabHardware">
+        <i class="bi bi-cpu me-1"></i>硬體設定
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" data-bs-toggle="tab" href="#tabAuth">
         <i class="bi bi-person-lock me-1"></i>帳號設定
       </a>
@@ -242,7 +247,65 @@
     </div>
 
     <!-- ════════════════════════════════════════
-         Tab 4 · 帳號設定
+         Tab 4 · 硬體設定
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="tabHardware" role="tabpanel">
+
+      <!-- 系統日期與時間 -->
+      <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-clock me-2"></i>系統日期與時間
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <span class="fs-3 font-monospace fw-bold" id="hwDateTime">--</span>
+            <button class="btn btn-outline-secondary btn-sm" onclick="loadHwInfo()">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+
+          <!-- NTP -->
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="ntpSwitch"
+                     onchange="setNtp(this.checked)" style="width:2.5em;height:1.25em;">
+              <label class="form-check-label ms-2" for="ntpSwitch">啟用 NTP 自動對時</label>
+            </div>
+            <span id="ntpStatus"></span>
+          </div>
+
+          <!-- 手動設定（NTP 關閉時顯示） -->
+          <div id="manualDtDiv" class="d-none">
+            <label class="form-label fw-semibold">手動設定日期時間</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="datetime-local" class="form-control form-control-sm"
+                     id="manualDtInput" style="max-width:14rem;">
+              <button class="btn btn-primary btn-sm" onclick="setManualDatetime()">
+                <i class="bi bi-check2-circle me-1"></i>套用
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 重新開機 -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+          <i class="bi bi-power me-2"></i>系統控制
+        </div>
+        <div class="card-body d-flex align-items-center gap-3">
+          <button class="btn btn-danger" onclick="rebootSystem()">
+            <i class="bi bi-arrow-repeat me-1"></i>重新開機
+          </button>
+          <small class="text-muted">重新開機後需等待約 30 秒再重新連線</small>
+        </div>
+      </div>
+
+      <div id="hwMsg" class="mt-2"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         Tab 5 · 帳號設定
     ════════════════════════════════════════ -->
     <div class="tab-pane fade" id="tabAuth" role="tabpanel">
       <p class="section-header">修改帳號密碼</p>
@@ -413,6 +476,7 @@ async function saveMqtt() {
 async function loadMeters() {
   metersData = await api('/api/meters');
   renderMeters();
+  renderTokens();   // 更新上行設定的電表下拉選單
 }
 
 function renderMeters() {
@@ -452,6 +516,11 @@ function addMeter() {
 }
 
 function deleteMeter(i) {
+  const name = metersData[i].name;
+  if (tokensData.some(t => t.meter_name === name)) {
+    showMsg('metersMsg', `✗ 「${name}」已在上行設定中使用，請先從上行設定移除後再刪除`, false);
+    return;
+  }
   metersData.splice(i, 1);
   renderMeters();
 }
@@ -476,10 +545,18 @@ async function loadTokens() {
 
 function renderTokens() {
   const tb = document.getElementById('tokensTbody');
-  tb.innerHTML = tokensData.map((t, i) => `
+  tb.innerHTML = tokensData.map((t, i) => {
+    const opts = metersData.map(m =>
+      `<option value="${esc(m.name)}" ${t.meter_name === m.name ? 'selected' : ''}>${esc(m.name)}</option>`
+    ).join('');
+    return `
     <tr>
-      <td class="col-name"><input class="form-control form-control-sm" value="${esc(t.meter_name)}"
-          oninput="tokensData[${i}].meter_name=this.value"></td>
+      <td class="col-name">
+        <select class="form-select form-select-sm" onchange="tokensData[${i}].meter_name=this.value">
+          <option value="">-- 選擇電表 --</option>
+          ${opts}
+        </select>
+      </td>
       <td class="col-token"><input class="form-control form-control-sm font-monospace" value="${esc(t.token)}"
           oninput="tokensData[${i}].token=this.value"></td>
       <td class="col-ptype"><input class="form-control form-control-sm" value="${esc(t.payload_type)}"
@@ -489,11 +566,13 @@ function renderTokens() {
           <i class="bi bi-trash"></i>
         </button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function addToken() {
-  tokensData.push({ meter_name:'', token:'', payload_type:'meter3p' });
+  const firstName = metersData.length > 0 ? metersData[0].name : '';
+  tokensData.push({ meter_name: firstName, token: '', payload_type: 'meter3p' });
   renderTokens();
 }
 
@@ -642,6 +721,68 @@ async function pausePolling() {
 async function resumePolling() {
   await api('/api/polling/resume', 'POST');
   updatePollingStatus();
+}
+
+// ──────────────────────────────────────────────────────────────
+//  Hardware Tab
+// ──────────────────────────────────────────────────────────────
+let _hwTimer = null;
+
+document.querySelector('a[href="#tabHardware"]').addEventListener('shown.bs.tab', () => {
+  loadHwInfo();
+  _hwTimer = setInterval(loadHwInfo, 5000);
+});
+document.querySelector('a[href="#tabHardware"]').addEventListener('hidden.bs.tab', () => {
+  clearInterval(_hwTimer); _hwTimer = null;
+});
+
+async function loadHwInfo() {
+  try {
+    const r = await api('/api/system/info');
+    document.getElementById('hwDateTime').textContent = r.datetime || '--';
+
+    const sw = document.getElementById('ntpSwitch');
+    sw.checked = r.ntp_enabled;
+
+    const badge = document.getElementById('ntpStatus');
+    if (r.ntp_enabled) {
+      badge.innerHTML = r.ntp_synced
+        ? '<span class="badge bg-success">已同步</span>'
+        : '<span class="badge bg-warning text-dark">同步中…</span>';
+    } else {
+      badge.innerHTML = '<span class="badge bg-secondary">已停用</span>';
+    }
+
+    const manualDiv = document.getElementById('manualDtDiv');
+    const inp = document.getElementById('manualDtInput');
+    if (r.ntp_enabled) {
+      manualDiv.classList.add('d-none');
+    } else {
+      manualDiv.classList.remove('d-none');
+      if (!inp.value && r.datetime)
+        inp.value = r.datetime.replace(' ', 'T').substring(0, 16);
+    }
+  } catch(e) { console.error('loadHwInfo', e); }
+}
+
+async function setNtp(enabled) {
+  const r = await api('/api/system/ntp', 'POST', { enabled });
+  if (r.status !== 'ok') showMsg('hwMsg', `✗ ${r.message}`, false);
+  setTimeout(loadHwInfo, 1000);
+}
+
+async function setManualDatetime() {
+  const val = document.getElementById('manualDtInput').value;
+  if (!val) return;
+  const r = await api('/api/system/datetime', 'POST', { datetime: val.replace('T', ' ') + ':00' });
+  showMsg('hwMsg', r.status === 'ok' ? '✓ 時間已更新' : `✗ ${r.message}`, r.status === 'ok');
+  if (r.status === 'ok') setTimeout(loadHwInfo, 500);
+}
+
+async function rebootSystem() {
+  if (!confirm('確定要重新開機嗎？系統將中斷連線約 30 秒。')) return;
+  const r = await api('/api/system/reboot', 'POST');
+  showMsg('hwMsg', r.status === 'ok' ? `✓ ${r.message}` : `✗ ${r.message}`, r.status === 'ok');
 }
 
 // ──────────────────────────────────────────────────────────────

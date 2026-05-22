@@ -288,6 +288,61 @@
         </div>
       </div>
 
+      <!-- NTP 詳細設定（NTP 啟用時顯示） -->
+      <div class="card mb-3 border-0 shadow-sm d-none" id="ntpDetailCard">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-wifi me-2"></i>NTP 詳細設定</span>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadNtpDetail()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+        <div class="card-body">
+
+          <!-- 目前同步狀態 -->
+          <p class="section-header">目前同步狀態</p>
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label text-muted small mb-0">使用中伺服器</label>
+              <div class="font-monospace" id="ntpCurrentServer">--</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label text-muted small mb-0">有效 NTP 伺服器清單</label>
+              <div class="font-monospace small text-muted" id="ntpSystemServers">--</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small mb-1">詳細同步資訊</label>
+            <pre class="bg-light rounded p-2 mb-0 test-result" id="ntpStatusText">--</pre>
+          </div>
+
+          <hr>
+
+          <!-- 伺服器設定 -->
+          <p class="section-header">伺服器設定
+            <small class="text-muted fw-normal ms-1">（多個請用空格分隔）</small>
+          </p>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">NTP 伺服器</label>
+              <input type="text" class="form-control form-control-sm font-monospace" id="ntpServers"
+                     placeholder="time.google.com ntp.ubuntu.com">
+            </div>
+            <div class="col-12">
+              <label class="form-label">備援 NTP 伺服器</label>
+              <input type="text" class="form-control form-control-sm font-monospace" id="ntpFallback"
+                     placeholder="0.debian.pool.ntp.org 1.debian.pool.ntp.org">
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary btn-sm" onclick="saveNtpConfig()">
+                <i class="bi bi-save me-1"></i>儲存並重啟 NTP 服務
+              </button>
+              <small class="text-muted ms-2">設定將寫入 /etc/systemd/timesyncd.conf.d/99-custom.conf</small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- 重新開機 -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white fw-semibold">
@@ -730,6 +785,7 @@ let _hwTimer = null;
 
 document.querySelector('a[href="#tabHardware"]').addEventListener('shown.bs.tab', () => {
   loadHwInfo();
+  loadNtpDetail();
   _hwTimer = setInterval(loadHwInfo, 5000);
 });
 document.querySelector('a[href="#tabHardware"]').addEventListener('hidden.bs.tab', () => {
@@ -753,11 +809,14 @@ async function loadHwInfo() {
       badge.innerHTML = '<span class="badge bg-secondary">已停用</span>';
     }
 
+    const ntpCard  = document.getElementById('ntpDetailCard');
     const manualDiv = document.getElementById('manualDtDiv');
     const inp = document.getElementById('manualDtInput');
     if (r.ntp_enabled) {
+      ntpCard.classList.remove('d-none');
       manualDiv.classList.add('d-none');
     } else {
+      ntpCard.classList.add('d-none');
       manualDiv.classList.remove('d-none');
       if (!inp.value && r.datetime)
         inp.value = r.datetime.replace(' ', 'T').substring(0, 16);
@@ -765,10 +824,40 @@ async function loadHwInfo() {
   } catch(e) { console.error('loadHwInfo', e); }
 }
 
+async function loadNtpDetail() {
+  try {
+    const r = await api('/api/system/ntp/detail');
+    if (r.status === 'fail') return;
+
+    const srv = document.getElementById('ntpCurrentServer');
+    srv.textContent = r.current_server
+      ? `${r.current_server}${r.current_server_ip ? '  (' + r.current_server_ip + ')' : ''}`
+      : '尚未連線';
+
+    document.getElementById('ntpSystemServers').textContent =
+      r.system_ntp || r.fallback_ntp || '--';
+    document.getElementById('ntpStatusText').textContent = r.status_text || '--';
+
+    // 只在欄位空白時預填（避免覆蓋使用者正在編輯的內容）
+    const srvInp = document.getElementById('ntpServers');
+    const fbInp  = document.getElementById('ntpFallback');
+    if (!srvInp.value) srvInp.value = r.configured_ntp || '';
+    if (!fbInp.value)  fbInp.value  = r.configured_fallback || '';
+  } catch(e) { console.error('loadNtpDetail', e); }
+}
+
+async function saveNtpConfig() {
+  const ntp      = document.getElementById('ntpServers').value.trim();
+  const fallback = document.getElementById('ntpFallback').value.trim();
+  const r = await api('/api/system/ntp/config', 'POST', { ntp, fallback });
+  showMsg('hwMsg', r.status === 'ok' ? '✓ NTP 設定已儲存，服務已重啟' : `✗ ${r.message}`, r.status === 'ok');
+  if (r.status === 'ok') setTimeout(loadNtpDetail, 2000);
+}
+
 async function setNtp(enabled) {
   const r = await api('/api/system/ntp', 'POST', { enabled });
   if (r.status !== 'ok') showMsg('hwMsg', `✗ ${r.message}`, false);
-  setTimeout(loadHwInfo, 1000);
+  setTimeout(() => { loadHwInfo(); if (enabled) loadNtpDetail(); }, 1000);
 }
 
 async function setManualDatetime() {

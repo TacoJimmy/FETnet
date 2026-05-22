@@ -79,7 +79,8 @@ CONFIG_DIR  = "config"
 MQTT_FILE   = os.path.join(CONFIG_DIR, "mqtt_config.json")
 METERS_FILE = os.path.join(CONFIG_DIR, "meters.json")
 TOKENS_FILE = os.path.join(CONFIG_DIR, "access_tokens.json")
-AUTH_FILE   = os.path.join(CONFIG_DIR, "auth.json")
+AUTH_FILE    = os.path.join(CONFIG_DIR, "auth.json")
+NETWORK_FILE = os.path.join(CONFIG_DIR, "network.json")
 
 
 def _get_secret_key() -> bytes:
@@ -594,6 +595,130 @@ def resume_polling():
         _polling_paused = False
     logger.info("輪詢已手動恢復")
     return jsonify({"status": "running"})
+
+
+# ── 網路設定 ─────────────────────────────────────────────────────
+NETWORKD_DIR  = "/etc/systemd/network"
+CELLULAR_CONF = os.path.join(NETWORKD_DIR, "20-wwan.network")
+
+_NETWORK_DEFAULT: dict = {
+    "eth": [
+        {"interface": "eth0", "dhcp": True,
+         "address": "", "prefix": "24", "gateway": "", "dns": ""},
+        {"interface": "eth1", "dhcp": True,
+         "address": "", "prefix": "24", "gateway": "", "dns": ""},
+    ],
+    "cellular": {
+        "enabled": False,
+        "apn":  "WVPN",
+        "dns1": "10.59.7.194",
+        "dns2": "10.59.6.194",
+    },
+}
+
+def _load_network_cfg() -> dict:
+    if os.path.exists(NETWORK_FILE):
+        return _load_cfg(NETWORK_FILE)
+    return json.loads(json.dumps(_NETWORK_DEFAULT))
+
+def _networkd_eth_content(cfg: dict) -> str:
+    name = cfg["interface"]
+    if cfg.get("dhcp", True):
+        return f"[Match]\nName={name}\n\n[Network]\nDHCP=yes\n\n[DHCP]\nUseDNS=yes\n"
+    lines = [f"[Match]\nName={name}\n\n[Network]\n",
+             f"Address={cfg.get('address','')}/{cfg.get('prefix','24')}\n"]
+    if cfg.get("gateway"):
+        lines.append(f"Gateway={cfg['gateway']}\n")
+    for d in cfg.get("dns", "").split():
+        lines.append(f"DNS={d}\n")
+    return "".join(lines)
+
+def _get_modem_path() -> str:
+    r = subprocess.run(["mmcli", "-L"], capture_output=True, text=True, timeout=5)
+    for line in r.stdout.splitlines():
+        if "/Modem/" in line:
+            return line.strip().split()[0]
+    return ""
+
+def _apply_cellular(cel: dict):
+    enabled = cel.get("enabled", False)
+    apn  = cel.get("apn",  "WVPN")
+    dns1 = cel.get("dns1", "10.59.7.194")
+    dns2 = cel.get("dns2", "10.59.6.194")
+
+    # 為 wwan 介面寫入 DNS 設定（不論是否啟用都預先寫入）
+    os.makedirs(NETWORKD_DIR, exist_ok=True)
+    with open(CELLULAR_CONF, "w") as f:
+        f.write(f"[Match]\nName=wwan*\n\n[Network]\nDNS={dns1}\nDNS={dns2}\n")
+
+    modem = _get_modem_path()
+    if not modem:
+        if not enabled:
+            return
+        raise RuntimeError("找不到 4G 模組，請確認 EG25-G 已連接且 ModemManager 已安裝")
+
+    if not enabled:
+        subprocess.run(["mmcli", "-m", modem, "--simple-disconnect"],
+                       capture_output=True, timeout=15)
+        return
+
+    subprocess.run(["mmcli", "-m", modem, "--enable"],
+                   check=True, timeout=15)
+    subprocess.run(["mmcli", "-m", modem, f"--simple-connect=apn={apn}"],
+                   check=True, timeout=30)
+    subprocess.run(["networkctl", "reload"], capture_output=True, timeout=10)
+
+
+@app.route("/api/network/config", methods=["GET"])
+def get_network_config():
+    return jsonify(_load_network_cfg())
+
+@app.route("/api/network/config", methods=["POST"])
+def save_network_config():
+    cfg = request.json
+    _save_cfg(NETWORK_FILE, cfg)
+    errors = []
+
+    try:
+        os.makedirs(NETWORKD_DIR, exist_ok=True)
+        for eth in cfg.get("eth", []):
+            if not eth.get("interface"):
+                continue
+            path = os.path.join(NETWORKD_DIR, f"10-{eth['interface']}.network")
+            with open(path, "w") as f:
+                f.write(_networkd_eth_content(eth))
+        subprocess.run(["networkctl", "reload"], check=True, timeout=10)
+    except Exception as e:
+        errors.append(f"Ethernet：{e}")
+
+    try:
+        _apply_cellular(cfg.get("cellular", {}))
+    except Exception as e:
+        errors.append(f"4G：{e}")
+
+    if errors:
+        return jsonify({"status": "partial", "message": "；".join(errors)})
+    return jsonify({"status": "ok"})
+
+@app.route("/api/network/status", methods=["GET"])
+def network_status():
+    try:
+        r = subprocess.run(["ip", "-j", "addr"],
+                           capture_output=True, text=True, timeout=5)
+        result = {}
+        for iface in json.loads(r.stdout):
+            name = iface.get("ifname", "")
+            if name == "lo":
+                continue
+            ipv4 = [a for a in iface.get("addr_info", [])
+                    if a.get("family") == "inet"]
+            result[name] = {
+                "up":      "UP" in iface.get("flags", []),
+                "address": f"{ipv4[0]['local']}/{ipv4[0]['prefixlen']}" if ipv4 else "",
+            }
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)}), 500
 
 
 # ── 硬體設定 ─────────────────────────────────────────────────────

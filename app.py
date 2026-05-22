@@ -11,8 +11,12 @@ import logging
 import os
 import ssl
 import sqlite3
+import subprocess
 import threading
 import time
+from datetime import datetime
+
+import sys
 
 import paho.mqtt.client as mqtt
 import schedule
@@ -35,6 +39,26 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 # ── 全域共用讀表器（輪詢 & Web 測試共用，避免 COM port 衝突）────
 _reader_lock: threading.Lock = threading.Lock()
 _g_reader: MeterReader | None = None
+
+# ── Watchdog（超過 1 小時無採集動作則重啟整個程式）──────────────
+WATCHDOG_TIMEOUT   = 3600          # 秒
+_watchdog_lock     = threading.Lock()
+_last_activity_ts  = time.time()   # 初始值避免啟動時立即觸發
+
+def _touch_activity():
+    global _last_activity_ts
+    with _watchdog_lock:
+        _last_activity_ts = time.time()
+
+def watchdog_loop():
+    """每分鐘檢查一次，超過 WATCHDOG_TIMEOUT 秒無採集動作則重啟程式"""
+    while True:
+        time.sleep(60)
+        with _watchdog_lock:
+            idle = time.time() - _last_activity_ts
+        if idle > WATCHDOG_TIMEOUT:
+            logger.warning("Watchdog：已 %.0f 秒無採集動作，重啟程式…", idle)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
 # ── 輪詢狀態（可被 Web UI 暫停最多 60 秒，到期自動恢復）──────────
 PAUSE_MAX_SEC      = 60
@@ -278,34 +302,47 @@ def publish_one(device: dict, reader: MeterReader, publisher: MQTTPublisher):
 
 
 def collection_loop():
-    """背景執行緒：讀表 + MQTT 排程上傳"""
+    """背景執行緒：讀表 + MQTT 排程上傳；任何例外皆自動重啟"""
     global _g_reader
-    try:
-        mqtt_cfg      = _load_cfg(MQTT_FILE)
-        meter_devices = _load_cfg(METERS_FILE)
-        reader    = MeterReader()
-        _g_reader = reader          # 共享給 Web 測試端點使用
-        publisher = MQTTPublisher(mqtt_cfg)
-        publisher.connect()
-
-        for device in meter_devices:
-            interval = device.get("publish_interval", 60)
-            publish_one(device, reader, publisher)
-            schedule.every(interval).seconds.do(publish_one, device, reader, publisher)
-            logger.info("[%s] 排程已啟動，每 %s 秒發佈一次", device["name"], interval)
-
-        while True:
-            if not _is_paused():
-                schedule.run_pending()
-            time.sleep(1)
-    except Exception as e:
-        logger.error("採集執行緒異常: %s", e)
-    finally:
+    while True:
+        reader    = None
+        publisher = None
         try:
-            reader.close_all()
-            publisher.stop()
-        except Exception:
-            pass
+            mqtt_cfg      = _load_cfg(MQTT_FILE)
+            meter_devices = _load_cfg(METERS_FILE)
+            reader    = MeterReader()
+            _g_reader = reader          # 共享給 Web 測試端點使用
+            publisher = MQTTPublisher(mqtt_cfg)
+            publisher.connect()
+
+            schedule.clear()
+            for device in meter_devices:
+                interval = device.get("publish_interval", 60)
+                publish_one(device, reader, publisher)
+                schedule.every(interval).seconds.do(publish_one, device, reader, publisher)
+                logger.info("[%s] 排程已啟動，每 %s 秒發佈一次", device["name"], interval)
+
+            while True:
+                if not _is_paused():
+                    schedule.run_pending()
+                _touch_activity()
+                time.sleep(1)
+        except Exception as e:
+            logger.error("採集執行緒異常: %s，30 秒後重啟…", e)
+        finally:
+            _g_reader = None
+            schedule.clear()
+            try:
+                if reader:
+                    reader.close_all()
+            except Exception:
+                pass
+            try:
+                if publisher:
+                    publisher.stop()
+            except Exception:
+                pass
+        time.sleep(30)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -559,6 +596,66 @@ def resume_polling():
     return jsonify({"status": "running"})
 
 
+# ── 硬體設定 ─────────────────────────────────────────────────────
+def _timedatectl_props() -> dict:
+    result = subprocess.run(
+        ["timedatectl", "show"], capture_output=True, text=True, timeout=5
+    )
+    props = {}
+    for line in result.stdout.splitlines():
+        k, _, v = line.partition("=")
+        props[k.strip()] = v.strip()
+    return props
+
+@app.route("/api/system/info", methods=["GET"])
+def system_info():
+    try:
+        props = _timedatectl_props()
+        return jsonify({
+            "datetime":    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "ntp_enabled": props.get("NTP", "no").lower() == "yes",
+            "ntp_synced":  props.get("NTPSynchronized", "no").lower() == "yes",
+        })
+    except Exception as e:
+        logger.error("system_info 錯誤: %s", e)
+        return jsonify({"status": "fail", "message": str(e)}), 500
+
+@app.route("/api/system/ntp", methods=["POST"])
+def set_ntp():
+    enabled = request.json.get("enabled", True)
+    try:
+        subprocess.run(
+            ["timedatectl", "set-ntp", "1" if enabled else "0"],
+            check=True, timeout=10
+        )
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)})
+
+@app.route("/api/system/datetime", methods=["POST"])
+def set_datetime():
+    dt_str = request.json.get("datetime", "")
+    try:
+        datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+        subprocess.run(
+            ["timedatectl", "set-time", dt_str],
+            check=True, timeout=10
+        )
+        return jsonify({"status": "ok"})
+    except ValueError:
+        return jsonify({"status": "fail", "message": "日期時間格式錯誤"})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)})
+
+@app.route("/api/system/reboot", methods=["POST"])
+def reboot_system():
+    try:
+        subprocess.Popen(["systemctl", "reboot"])
+        return jsonify({"status": "ok", "message": "系統即將重新開機，請稍候約 30 秒再重新連線"})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)})
+
+
 # ══════════════════════════════════════════════════════════════════
 #  啟動
 # ══════════════════════════════════════════════════════════════════
@@ -566,6 +663,11 @@ def main():
     os.makedirs(CONFIG_DIR, exist_ok=True)
     _ensure_auth_file()
     init_db()
+
+    # Watchdog 執行緒
+    wt = threading.Thread(target=watchdog_loop, daemon=True, name="Watchdog")
+    wt.start()
+    logger.info("Watchdog 已啟動（逾時 %s 秒）", WATCHDOG_TIMEOUT)
 
     # 資料採集在背景執行緒運行（daemon=True 讓主程式結束時自動關閉）
     t = threading.Thread(target=collection_loop, daemon=True, name="CollectionLoop")

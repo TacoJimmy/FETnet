@@ -288,6 +288,8 @@ def publish_one(device: dict, reader: MeterReader, publisher: MQTTPublisher):
             data = reader.read_adtek_cpm12d(port, slave_id)
         elif dev_type == "dae_PM210":
             data = reader.read_dae_PM210(port, slave_id)
+        elif dev_type == "msdp_300":
+            data = reader.read_msdp_300(port, slave_id)
         else:
             logger.warning("未知電表類型: %s，略過", dev_type)
             return
@@ -527,6 +529,8 @@ def test_meter(name):
                 data = reader.read_adtek_cpm12d(device["port"], device["slave_id"])
             elif dev_type == "dae_PM210":
                 data = reader.read_dae_PM210(device["port"], device["slave_id"])
+            elif dev_type == "msdp_300":
+                data = reader.read_msdp_300(device["port"], device["slave_id"])
             else:
                 return jsonify({"status": "fail", "message": f"未知設備類型：{dev_type}"})
             alive = bool(data.get("alive", 0))

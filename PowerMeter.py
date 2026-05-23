@@ -59,6 +59,28 @@ DEVICE_CONFIGS = {
             "frequency": 2, "power": 1, "power_kva": 1,
             "pf": 3, "energy": 1, "immediate_demand": 4,
         }
+    },
+    "msdp_300": {
+        "registers": {
+            "voltage_r_s":      (0,  1, 0.1),
+            "voltage_s_t":      (1,  1, 0.1),
+            "voltage_t_r":      (2,  1, 0.1),
+            "current_r":        (6,  1, 1.0),
+            "current_s":        (7,  1, 1.0),
+            "current_t":        (8,  1, 1.0),
+            "frequency":        (22, 1, 0.1),
+            "power":            (9,  1, 10),
+            "power_kva":        (10, 1, 10),
+            "pf":               (15, 1, 0.001),
+            "energy":           (26, 2, 1000),  # 4 bytes = 2 registers
+            "immediate_demand": (25, 1, 10),
+        },
+        "decimals": {
+            "voltage_r_s": 1, "voltage_s_t": 1, "voltage_t_r": 1,
+            "current_r": 1, "current_s": 1, "current_t": 1,
+            "frequency": 1, "power": 0, "power_kva": 0,
+            "pf": 3, "energy": 0, "immediate_demand": 0,
+        }
     }
 }
 
@@ -238,8 +260,13 @@ class MeterReader:
 
     def read_adtek_cpm12d(self, port, slave_id):
         """ADTEK CPM-12D 電表讀取 (含 3 次重試機制)"""
-        return self._read_with_retry(port, slave_id, "adtek_cpm12d", 
+        return self._read_with_retry(port, slave_id, "adtek_cpm12d",
                                      "voltage_r_s", 0x0131, 2)
+
+    def read_msdp_300(self, port, slave_id):
+        """MSDP-300 電表讀取 (含 3 次重試機制)"""
+        return self._read_with_retry(port, slave_id, "msdp_300",
+                                     "voltage_r_s", 0, 2)
 
     def close_all(self):
         for client in self.clients.values():
@@ -253,7 +280,7 @@ if __name__ == "__main__":
     reader = MeterReader()
 
     test_devices = [
-        {"name": "meter_01", "slave_id": 1, "port": "COM6", "type": "adtek_cpm12d"}
+        {"name": "meter_01", "slave_id": 1, "port": "COM6", "type": "msdp_300"}
     ]
 
     try:
@@ -262,6 +289,8 @@ if __name__ == "__main__":
                 data = reader.read_dae_PM210(dev["port"], dev["slave_id"])
             elif dev["type"] == "adtek_cpm12d":
                 data = reader.read_adtek_cpm12d(dev["port"], dev["slave_id"])
+            elif dev["type"] == "msdp_300":
+                data = reader.read_msdp_300(dev["port"], dev["slave_id"])
             else:
                 logger.warning(f"未知的設備類型: {dev['type']}")
                 continue
